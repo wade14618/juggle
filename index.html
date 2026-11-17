@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Juggle</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
+<style>
+/* Layout idea: one dusky stage, a ring of spots, every number a colored ball. Single theme by choice. */
+:root{color-scheme:dark;--bg:#2E3150;--panel:#393D61;--ink:#F4F1E8;--mute:#C6C4DA;--edge:#6A6E98;--sun:#F2CD5C;--warn:#FFC2AE;--display:"Fredoka","Trebuchet MS",system-ui,sans-serif;--body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body)}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.spot:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
+#app{max-width:440px;margin:0 auto;padding:10px 16px 28px;display:flex;flex-direction:column;gap:12px}
+header{display:flex;align-items:center;justify-content:space-between;height:52px}
+h1{font-family:var(--display);font-weight:600;font-size:28px;margin:0;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+h1 svg{width:34px;height:34px}
+.nav{display:flex;align-items:center;gap:0;font-size:14px;font-weight:500;color:var(--mute)}
+.nav button{width:44px;height:44px;border:0;background:transparent;font-size:26px;color:var(--ink)}
+.nav button:disabled{color:#555A85}
+.round{width:44px;height:44px;border-radius:22px;border:1.5px solid var(--edge);background:var(--panel);font-family:var(--display);font-size:20px;font-weight:600}
+.sizes{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--panel);border-radius:26px;padding:4px}
+.sizes button{height:44px;border:0;border-radius:22px;background:transparent;font-family:var(--display);font-size:16px;font-weight:600;color:var(--mute)}
+.sizes button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+#board{width:100%;display:block;touch-action:manipulation}
+#board .spot{cursor:pointer}
+svg text{font-family:var(--display)}
+.msg{min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:15px;line-height:20px;color:var(--mute)}
+.msg b{color:var(--ink)}
+.msg.bad{color:var(--warn);font-weight:600}
+.play{display:flex;flex-direction:column;gap:12px}
+#rack{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:60px;align-items:center}
+#rack button{width:54px;height:54px;border-radius:27px;border:0;color:#23253D;font-family:var(--display);font-size:26px;font-weight:700;box-shadow:inset 0 -3px 0 rgba(20,22,43,.16)}
+#rack button.sel{outline:4px solid var(--ink);outline-offset:3px;transform:translateY(-5px)}
+.racklabel{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);text-align:center}
+.ctl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ctl button,.done button{height:48px;border-radius:24px;border:1.5px solid var(--edge);background:var(--panel);font-family:var(--display);font-size:16px;font-weight:600}
+.done{display:none;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.done .big{font-family:var(--display);font-size:20px;font-weight:600}
+.done .sub{font-size:15px;line-height:21px;color:var(--mute)}
+.done .row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
+.done button.primary{background:var(--sun);border-color:var(--sun);color:#23253D}
+.solved .done{display:flex}
+.solved .play{display:none}
+#help{position:fixed;inset:0;background:rgba(20,22,40,.6);display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:16px}
+#help.open{display:flex}
+#help .sheet{background:var(--panel);border-radius:20px;max-width:420px;width:100%;padding:18px 18px 22px}
+#help h2{font-family:var(--display);margin:0 0 6px;font-size:24px}
+#help h3{font-family:var(--display);margin:16px 0 4px;font-size:17px}
+#help p,#help li{font-size:15px;line-height:22px;margin:4px 0;color:var(--ink)}
+#help ol{padding-left:22px;margin:6px 0}
+#help svg{width:74%;display:block;margin:8px auto;background:var(--bg);border-radius:16px}
+#help .close{width:100%;height:48px;border-radius:24px;border:0;background:var(--sun);color:#23253D;font-family:var(--display);font-size:16px;font-weight:600;margin-top:14px}
+#help .small{font-size:13px;color:var(--mute);text-align:center;margin-top:12px}
+#help .erase{background:transparent;border:1.5px solid var(--edge);color:var(--ink);height:44px;border-radius:22px;width:100%;font-size:14px;font-weight:600;margin-top:10px}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+<h1><svg viewBox="0 0 34 34" aria-hidden="true"><path d="M5 27Q17 -6 29 27" fill="none" stroke="#6A6E98" stroke-width="2.5" stroke-dasharray="1 5" stroke-linecap="round"/><circle cx="6" cy="25" r="5" fill="#EC7A8E"/><circle cx="17" cy="8" r="5" fill="#F2CD5C"/><circle cx="28" cy="25" r="5" fill="#86A6EE"/></svg>Juggle</h1>
+<div class="nav"><button id="prev" aria-label="Previous puzzle">&#8249;</button><span id="num">No. 1 of 60</span><button id="next" aria-label="Next puzzle">&#8250;</button></div>
+<button class="round" id="helpBtn" aria-label="How to play">?</button>
+</header>
+<div class="sizes" role="group" aria-label="Puzzle size">
+<button data-n="5">Small</button><button data-n="7">Medium</button><button data-n="9">Large</button>
+</div>
+<svg id="board" viewBox="0 0 360 360" role="group" aria-label="Juggle board"></svg>
+<div class="play">
+<div class="msg" id="msg"></div>
+<div class="racklabel">Numbers to place</div>
+<div id="rack"></div>
+<div class="ctl"><button id="hint">Hint</button><button id="undo">Undo</button><button id="reset">Reset</button></div>
+</div>
+<div class="done">
+<div class="big" id="doneBig"></div>
+<div class="sub" id="doneSub"></div>
+<div class="row"><button class="primary" id="nextBtn">Next puzzle</button><button id="again">Play again</button><button id="copy">Copy result</button></div>
+</div>
+</div>
+<div id="help" role="dialog" aria-modal="true" aria-label="How to play">
+<div class="sheet">
+<h2>How to play</h2>
+<ol>
+<li>Every number is a <b>jump</b>. A 3 jumps three spots clockwise. Jumps wrap around the ring.</li>
+<li>Tap a number, then tap an empty spot to put it there. A line shows where it lands.</li>
+<li>Fill the ring so that <b>every spot is landed on exactly once</b>.</li>
+<li>Numbers with a ring around them are already set and cannot move.</li>
+</ol>
+<div id="helpPic"></div>
+<p>In the picture, the 2 at the top jumps two spots. Follow each arrow: no spot has two arrows coming in, and none is missed.</p>
+<h3>Controls</h3>
+<p>Tap a number you placed to take it back. <b>Hint</b> places one correct number. <b>Undo</b> takes back your last move. <b>Reset</b> clears your numbers.</p>
+<h3>Tips</h3>
+<p>A number as big as the ring jumps all the way round and lands on its own spot. If two arrows hit one spot, both turn white and dotted, and the spot gets a white ring.</p>
+<h3>Why "Juggle"?</h3>
+<p>This is how jugglers write down their tricks. Each number is how many beats a ball stays in the air, and a trick only works if no two balls come down on the same beat. Every puzzle you solve here is a real juggling pattern.</p>
+<button class="close" id="closeHelp">Play</button>
+<button class="erase" id="erase">Erase my progress</button>
+<div class="small">Version 4</div>
+</div>
+</div>
+<script>
+var BANK = {"5":[{"g":[0,0,0,1,0],"s":[2,4,4,1,4]},{"g":[0,3,1,0,0],"s":[5,3,1,4,2]},{"g":[3,0,0,0,0],"s":[3,4,2,4,2]},{"g":[1,3,0,0,0],"s":[1,3,1,2,3]},{"g":[0,0,0,3,0],"s":[4,1,1,3,1]},{"g":[0,0,0,0,2],"s":[3,1,3,1,2]},{"g":[0,0,3,0,0],"s":[1,1,3,1,4]},{"g":[5,0,0,0,4],"s":[5,1,2,3,4]},{"g":[0,3,0,0,0],"s":[5,3,4,4,4]},{"g":[0,0,0,1,2],"s":[2,4,1,1,2]},{"g":[0,0,1,0,0],"s":[5,3,1,3,3]},{"g":[0,3,0,2,0],"s":[3,3,5,2,2]},{"g":[4,2,0,0,0],"s":[4,2,5,3,1]},{"g":[2,0,4,0,0],"s":[2,3,4,5,1]},{"g":[0,0,0,0,1],"s":[2,2,2,3,1]},{"g":[0,0,0,5,0],"s":[2,4,2,5,2]},{"g":[0,0,1,0,0],"s":[4,4,1,3,3]},{"g":[0,5,0,0,0],"s":[4,5,3,4,4]},{"g":[0,0,0,1,4],"s":[2,5,3,1,4]},{"g":[0,3,0,0,0],"s":[1,3,1,4,1]},{"g":[0,0,1,0,1],"s":[4,5,1,4,1]},{"g":[0,0,2,0,0],"s":[1,1,2,5,1]},{"g":[0,4,0,0,0],"s":[1,4,1,1,3]},{"g":[4,0,4,0,0],"s":[4,4,4,5,3]},{"g":[0,3,0,3,0],"s":[2,3,3,3,4]},{"g":[4,0,0,0,2],"s":[4,1,3,5,2]},{"g":[0,0,0,0,4],"s":[1,1,2,2,4]},{"g":[2,0,0,0,0],"s":[2,5,1,1,1]},{"g":[0,0,3,4,0],"s":[1,3,3,4,4]},{"g":[0,0,0,0,5],"s":[3,1,3,3,5]},{"g":[0,0,1,2,0],"s":[4,1,1,2,2]},{"g":[5,0,0,0,0],"s":[5,2,2,3,3]},{"g":[5,0,0,0,0],"s":[5,1,1,1,2]},{"g":[0,0,0,5,0],"s":[2,3,3,5,2]},{"g":[0,0,4,0,0],"s":[3,3,4,2,3]},{"g":[0,0,3,0,0],"s":[4,2,3,4,2]},{"g":[0,0,2,0,0],"s":[1,4,2,4,4]},{"g":[2,2,0,0,0],"s":[2,2,4,1,1]},{"g":[0,3,0,0,4],"s":[1,3,5,2,4]},{"g":[1,2,0,0,0],"s":[1,2,3,4,5]},{"g":[3,0,0,0,0],"s":[3,1,2,2,2]},{"g":[1,0,1,0,0],"s":[1,1,1,2,5]},{"g":[3,0,0,0,0],"s":[3,4,4,4,5]},{"g":[2,2,0,0,0],"s":[2,2,3,3,5]},{"g":[0,0,0,0,4],"s":[2,5,2,2,4]},{"g":[0,0,0,1,1],"s":[3,1,4,1,1]},{"g":[0,1,0,0,0],"s":[4,1,4,2,4]},{"g":[0,1,0,1,0],"s":[5,1,4,1,4]},{"g":[0,0,5,0,0],"s":[1,2,5,1,1]},{"g":[0,1,0,0,5],"s":[3,1,4,2,5]},{"g":[0,0,5,0,0],"s":[4,4,5,3,4]},{"g":[0,0,5,0,0],"s":[3,3,5,3,1]},{"g":[0,0,0,0,5],"s":[2,2,4,2,5]},{"g":[0,5,2,0,0],"s":[3,5,2,4,1]},{"g":[0,4,1,0,0],"s":[1,4,1,4,5]},{"g":[0,0,2,0,0],"s":[3,4,2,3,3]},{"g":[4,0,3,0,0],"s":[4,1,3,3,4]},{"g":[0,0,0,3,0],"s":[2,4,2,3,4]},{"g":[0,0,0,5,0],"s":[1,3,3,5,3]},{"g":[0,4,0,1,0],"s":[1,4,5,1,4]}],"7":[{"g":[3,5,6,0,0,0,0],"s":[3,5,6,4,7,4,6]},{"g":[7,0,0,0,2,0,3],"s":[7,4,1,1,2,3,3]},{"g":[0,5,0,4,0,0,0],"s":[4,5,1,4,1,3,3]},{"g":[0,2,6,0,0,0,6],"s":[7,2,6,3,5,6,6]},{"g":[1,0,1,0,7,0,0],"s":[1,6,1,3,7,4,6]},{"g":[0,6,2,0,0,0,3],"s":[5,6,2,3,4,5,3]},{"g":[0,4,0,0,0,3,0],"s":[2,4,5,7,2,3,5]},{"g":[0,5,0,0,0,0,4],"s":[7,5,6,6,1,6,4]},{"g":[2,2,0,0,0,1,0],"s":[2,2,5,5,7,1,6]},{"g":[0,0,1,0,0,0,7],"s":[5,3,1,5,5,2,7]},{"g":[1,0,4,0,0,6,0],"s":[1,6,4,7,5,6,6]},{"g":[0,0,0,7,0,0,5],"s":[1,1,4,7,1,2,5]},{"g":[0,3,0,0,2,0,0],"s":[2,3,6,2,2,2,4]},{"g":[3,0,0,3,1,0,0],"s":[3,3,5,3,1,4,2]},{"g":[0,0,3,0,5,0,0],"s":[4,2,3,3,5,2,2]},{"g":[0,0,2,0,0,0,6],"s":[1,1,2,7,3,1,6]},{"g":[1,5,0,0,0,0,4],"s":[1,5,2,6,1,2,4]},{"g":[3,0,2,0,0,2,0],"s":[3,4,2,6,4,2,7]},{"g":[0,5,6,0,0,0,5],"s":[3,5,6,6,1,2,5]},{"g":[0,0,3,0,2,0,0],"s":[4,7,3,4,2,4,4]},{"g":[0,2,0,0,0,4,0],"s":[6,2,6,1,3,4,6]},{"g":[0,0,0,0,2,0,3],"s":[4,4,1,4,2,3,3]},{"g":[0,2,0,5,0,0,0],"s":[4,2,3,5,2,2,3]},{"g":[2,0,2,0,0,0,0],"s":[2,6,2,5,6,1,6]},{"g":[0,0,0,7,0,0,6],"s":[6,1,6,7,3,6,6]},{"g":[0,0,4,4,0,3,0],"s":[2,2,4,4,1,3,5]},{"g":[6,0,0,0,0,2,0],"s":[6,1,1,5,1,2,5]},{"g":[2,0,1,0,0,0,0],"s":[2,6,1,1,4,1,6]},{"g":[1,0,0,0,5,0,1],"s":[1,4,4,7,5,6,1]},{"g":[3,0,0,4,0,0,0],"s":[3,5,2,4,5,7,2]},{"g":[0,2,2,0,2,0,0],"s":[5,2,2,5,2,4,1]},{"g":[0,0,0,7,0,4,0],"s":[1,3,4,7,1,4,1]},{"g":[2,0,6,0,0,0,0],"s":[2,3,6,3,3,7,4]},{"g":[0,3,0,0,0,0,6],"s":[2,3,4,4,4,5,6]},{"g":[0,0,0,0,7,4,0],"s":[3,6,3,3,7,4,2]},{"g":[0,7,0,2,0,5,0],"s":[4,7,4,2,5,5,1]},{"g":[5,5,0,0,0,6,0],"s":[5,5,1,6,3,6,2]},{"g":[7,3,3,0,0,0,0],"s":[7,3,3,5,2,4,4]},{"g":[5,0,0,0,6,0,0],"s":[5,1,4,1,6,3,1]},{"g":[5,0,0,0,5,0,5],"s":[5,6,1,3,5,3,5]},{"g":[0,5,0,5,0,0,0],"s":[2,5,1,5,1,6,1]},{"g":[0,3,5,0,0,3,0],"s":[6,3,5,6,1,3,4]},{"g":[0,0,0,1,0,0,4],"s":[2,7,3,1,2,2,4]},{"g":[6,0,6,0,0,0,6],"s":[6,2,6,4,5,6,6]},{"g":[0,0,6,1,0,4,0],"s":[7,5,6,1,1,4,4]},{"g":[2,4,0,0,0,0,2],"s":[2,4,4,7,3,6,2]},{"g":[3,3,0,0,0,0,0],"s":[3,3,4,5,1,4,1]},{"g":[5,0,7,0,0,0,0],"s":[5,6,7,3,4,6,4]},{"g":[3,0,0,0,0,1,2],"s":[3,1,2,4,1,1,2]},{"g":[3,6,0,0,0,0,7],"s":[3,6,3,6,4,6,7]},{"g":[5,0,0,0,0,0,1],"s":[5,3,1,3,4,4,1]},{"g":[2,0,3,3,0,0,0],"s":[2,2,3,3,4,2,5]},{"g":[0,0,0,5,1,0,0],"s":[6,6,1,5,1,6,3]},{"g":[0,0,0,3,0,3,1],"s":[2,4,2,3,6,3,1]},{"g":[0,2,0,2,0,0,7],"s":[4,2,5,2,5,3,7]},{"g":[4,5,0,0,0,2,0],"s":[4,5,3,7,5,2,2]},{"g":[0,0,0,0,6,0,2],"s":[5,1,5,1,6,1,2]},{"g":[0,1,4,0,0,0,0],"s":[5,1,4,5,6,2,5]},{"g":[0,0,0,0,4,0,4],"s":[7,1,3,1,4,1,4]},{"g":[0,4,0,0,4,0,0],"s":[3,4,5,1,4,1,3]}],"9":[{"g":[0,5,0,0,7,0,2,7,0],"s":[4,5,8,6,7,2,2,7,4]},{"g":[0,0,5,0,5,0,0,8,0],"s":[1,7,5,1,5,7,8,8,3]},{"g":[0,8,6,0,0,0,0,0,5],"s":[3,8,6,3,3,9,4,4,5]},{"g":[0,8,8,0,0,3,0,0,3],"s":[4,8,8,2,3,3,9,5,3]},{"g":[0,0,0,0,5,8,0,0,8],"s":[3,7,3,3,5,8,4,4,8]},{"g":[0,0,1,0,9,4,0,0,0],"s":[2,7,1,3,9,4,8,3,8]},{"g":[0,4,0,5,0,0,5,2,0],"s":[3,4,5,5,9,1,5,2,2]},{"g":[0,8,9,0,6,0,8,0,0],"s":[3,8,9,5,6,2,8,6,7]},{"g":[0,8,0,9,6,0,7,0,0],"s":[5,8,4,9,6,3,7,4,8]},{"g":[0,5,3,0,0,0,0,0,5],"s":[8,5,3,4,6,4,6,4,5]},{"g":[6,0,0,8,0,3,3,0,0],"s":[6,3,8,8,3,3,3,7,4]},{"g":[0,7,9,3,0,0,0,0,0],"s":[5,7,9,3,5,2,7,5,2]},{"g":[0,5,0,2,0,0,5,6,0],"s":[1,5,1,2,3,4,5,6,9]},{"g":[6,4,0,0,7,0,0,0,5],"s":[6,4,8,9,7,4,1,1,5]},{"g":[0,0,0,7,0,2,0,8,6],"s":[3,3,7,7,4,2,5,8,6]},{"g":[0,2,0,0,3,3,0,8,0],"s":[9,2,8,8,3,3,7,8,6]},{"g":[0,6,0,7,0,0,7,7,0],"s":[2,6,4,7,5,3,7,7,4]},{"g":[0,7,0,0,7,0,7,2,0],"s":[5,7,4,9,7,2,7,2,2]},{"g":[0,0,0,4,0,7,0,8,2],"s":[2,4,6,4,5,7,7,8,2]},{"g":[0,4,0,8,0,0,0,0,9],"s":[4,4,4,8,3,7,4,2,9]},{"g":[0,2,6,7,0,0,0,0,7],"s":[7,2,6,7,1,8,3,4,7]},{"g":[2,0,0,0,2,0,2,7,0],"s":[2,3,7,9,2,5,2,7,8]},{"g":[9,0,8,0,0,0,5,0,0],"s":[9,7,8,1,3,7,5,7,7]},{"g":[9,1,0,7,0,0,2,0,0],"s":[9,1,5,7,1,7,2,6,7]},{"g":[0,0,0,7,3,0,2,6,0],"s":[5,8,1,7,3,1,2,6,3]},{"g":[0,9,0,3,0,0,8,0,0],"s":[2,9,5,3,4,4,8,5,5]},{"g":[0,2,2,0,0,0,0,0,8],"s":[1,2,2,6,1,1,5,1,8]},{"g":[0,0,6,0,3,0,0,2,4],"s":[6,1,6,7,3,8,8,2,4]},{"g":[2,0,0,0,0,7,2,0,0],"s":[2,6,4,1,1,7,2,2,2]},{"g":[4,0,7,0,0,9,6,0,0],"s":[4,6,7,5,7,9,6,8,2]},{"g":[0,6,0,0,1,0,0,4,7],"s":[9,6,2,7,1,3,6,4,7]},{"g":[3,8,0,0,0,0,0,1,2],"s":[3,8,4,2,7,2,7,1,2]},{"g":[8,0,0,1,6,0,0,0,0],"s":[8,5,5,1,6,9,5,2,4]},{"g":[0,0,0,3,0,3,5,0,0],"s":[7,4,7,3,6,3,5,5,5]},{"g":[0,7,0,4,0,0,0,7,2],"s":[2,7,2,4,5,1,6,7,2]},{"g":[0,0,0,5,0,6,7,0,1],"s":[6,4,8,5,8,6,7,9,1]},{"g":[0,0,8,0,5,8,0,0,8],"s":[3,4,8,5,5,8,9,4,8]},{"g":[6,0,0,9,0,6,2,0,0],"s":[6,4,2,9,3,6,2,3,1]},{"g":[0,0,4,0,4,6,0,0,4],"s":[9,3,4,4,4,6,8,3,4]},{"g":[0,7,0,1,0,0,4,0,0],"s":[6,7,3,1,3,4,4,5,3]},{"g":[0,0,0,0,0,5,7,1,6],"s":[3,8,4,8,3,5,7,1,6]},{"g":[0,5,2,0,6,0,0,0,0],"s":[7,5,2,6,6,7,5,7,9]},{"g":[0,8,0,1,0,0,0,8,8],"s":[5,8,9,1,4,7,4,8,8]},{"g":[0,0,7,7,0,0,5,7,0],"s":[3,3,7,7,3,1,5,7,9]},{"g":[0,1,7,1,0,0,0,0,4],"s":[8,1,7,1,3,5,9,7,4]},{"g":[8,0,5,0,0,4,0,0,3],"s":[8,2,5,1,2,4,4,7,3]},{"g":[3,0,0,6,0,0,0,0,3],"s":[3,5,8,6,1,8,1,1,3]},{"g":[0,0,0,8,5,0,0,1,5],"s":[6,6,8,8,5,9,6,1,5]},{"g":[9,0,0,0,0,0,0,3,8],"s":[9,4,4,1,4,6,6,3,8]},{"g":[0,0,0,2,7,8,0,3,0],"s":[9,5,6,2,7,8,1,3,4]},{"g":[0,0,0,4,7,0,3,3,0],"s":[8,5,3,4,7,8,3,3,4]},{"g":[0,0,7,4,0,0,0,8,6],"s":[3,7,7,4,9,5,5,8,6]},{"g":[3,0,0,7,1,3,0,0,0],"s":[3,6,2,7,1,3,5,8,1]},{"g":[9,0,5,7,0,0,0,0,0],"s":[9,2,5,7,2,3,5,7,5]},{"g":[0,0,3,0,0,0,0,6,1],"s":[6,1,3,4,4,7,4,6,1]},{"g":[9,2,5,0,0,0,0,7,0],"s":[9,2,5,1,6,6,2,7,7]},{"g":[5,0,0,0,0,0,0,3,0],"s":[5,8,6,8,8,8,9,3,8]},{"g":[0,0,6,7,0,0,0,0,0],"s":[5,5,6,7,3,4,5,5,5]},{"g":[1,0,5,1,0,0,9,0,0],"s":[1,2,5,1,5,3,9,7,3]},{"g":[8,1,0,0,6,0,0,0,0],"s":[8,1,2,2,6,1,1,2,4]}]};
+var KEY = 'juggle1:';
+var store = {
+  get: function (k) { try { var v = localStorage.getItem(KEY + k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+  set: function (k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) {} },
+  clear: function () { try { var ks = []; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf(KEY) === 0) ks.push(k); } ks.forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} }
+};
+var S = { n: 5, idx: 0, placed: [], hist: [], hints: 0, selTile: null, selSpot: null, start: 0, elapsed: 0, done: false };
+
+function puzzle() { return BANK[S.n][S.idx]; }
+function rackOf() {
+  var p = puzzle(), need = {}, out = [];
+  p.s.forEach(function (v, i) { if (!p.g[i]) need[v] = (need[v] || 0) + 1; });
+  S.placed.forEach(function (v, i) { if (v && !p.g[i]) need[v]--; });
+  Object.keys(need).map(Number).sort(function (a, b) { return a - b; }).forEach(function (v) { for (var k = 0; k < need[v]; k++) out.push(v); });
+  return out;
+}
+function landings(n, placed) {
+  var c = []; for (var i = 0; i < n; i++) c.push(0);
+  placed.forEach(function (v, i) { if (v) c[(i + v) % n]++; });
+  return c;
+}
+var COL = { 1: '#F2CD5C', 2: '#F09A62', 3: '#EC7A8E', 4: '#B996E4', 5: '#86A6EE', 6: '#62BEDB', 7: '#62C9A6', 8: '#AACB66', 9: '#E8E4DA' };
+function drawBoard(n, placed, givens, o) {
+  o = o || {};
+  var sfx = o.id || '';
+  var cx = 180, cy = 180, R = 130, r = n === 5 ? 31 : n === 7 ? 27 : 24;
+  var pts = [], angs = [], i, f1 = function (x) { return x.toFixed(1); };
+  for (i = 0; i < n; i++) { var a = -Math.PI / 2 + i * 2 * Math.PI / n; angs.push(a); pts.push([cx + R * Math.cos(a), cy + R * Math.sin(a)]); }
+  var land = landings(n, placed);
+  var full = placed.every(function (v) { return !!v; });
+  var h = '<defs>';
+  for (i = 1; i <= 9; i++) h += '<marker id="m' + i + sfx + '" viewBox="0 0 10 10" refX="7.5" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="' + COL[i] + '"/></marker>';
+  h += '<marker id="mx' + sfx + '" viewBox="0 0 10 10" refX="7.5" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#FFFFFF"/></marker></defs>';
+  h += '<circle cx="180" cy="180" r="' + R + '" fill="none" stroke="#4D5180" stroke-width="2" stroke-dasharray="1 8" stroke-linecap="round"/>';
+  var arcs = '';
+  for (i = 0; i < n; i++) {
+    var v = placed[i]; if (!v) continue;
+    var j = (i + v) % n, clash = land[j] > 1 && !o.solved;
+    var col = clash ? '#FFFFFF' : COL[v], mk = clash ? 'mx' : 'm' + v;
+    var p = pts[i], q = pts[j], d;
+    if (j === i) {
+      var ux = (cx - p[0]) / R, uy = (cy - p[1]) / R, px = -uy, py = ux;
+      var s1 = [p[0] + ux * r * 0.75 + px * r * 0.8, p[1] + uy * r * 0.75 + py * r * 0.8];
+      var s2 = [p[0] + ux * r * 0.9 - px * r * 0.8, p[1] + uy * r * 0.9 - py * r * 0.8];
+      var c1 = [p[0] + ux * (r + 50) + px * 36, p[1] + uy * (r + 50) + py * 36];
+      var c2 = [p[0] + ux * (r + 50) - px * 36, p[1] + uy * (r + 50) - py * 36];
+      d = 'M' + f1(s1[0]) + ' ' + f1(s1[1]) + 'C' + f1(c1[0]) + ' ' + f1(c1[1]) + ' ' + f1(c2[0]) + ' ' + f1(c2[1]) + ' ' + f1(s2[0]) + ' ' + f1(s2[1]);
+    } else {
+      var mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2, k = 0.42;
+      var c = [mx + (cx - mx) * k, my + (cy - my) * k];
+      var d1 = Math.hypot(c[0] - p[0], c[1] - p[1]) || 1, d2 = Math.hypot(c[0] - q[0], c[1] - q[1]) || 1;
+      var a0 = [p[0] + (c[0] - p[0]) / d1 * (r + 3), p[1] + (c[1] - p[1]) / d1 * (r + 3)];
+      var b0 = [q[0] + (c[0] - q[0]) / d2 * (r + 8), q[1] + (c[1] - q[1]) / d2 * (r + 8)];
+      d = 'M' + f1(a0[0]) + ' ' + f1(a0[1]) + 'Q' + f1(c[0]) + ' ' + f1(c[1]) + ' ' + f1(b0[0]) + ' ' + f1(b0[1]);
+    }
+    arcs += '<path d="' + d + '" fill="none" stroke="#2E3150" stroke-width="8" stroke-linecap="round"/>';
+    arcs += '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="4" stroke-linecap="round"' + (clash ? ' stroke-dasharray="3 9"' : '') + ' marker-end="url(#' + mk + sfx + ')"/>';
+  }
+  h += arcs;
+  if (o.solved && o.balls) {
+    h += '<circle cx="180" cy="180" r="38" fill="#2E3150" stroke="#F2CD5C" stroke-width="2.5"/>';
+    h += '<text x="180" y="190" text-anchor="middle" font-size="38" font-weight="600" fill="#F2CD5C">' + o.balls + '</text>';
+    h += '<text x="180" y="206" text-anchor="middle" font-size="9.5" font-weight="600" letter-spacing="2.5" fill="#F4F1E8">' + (o.balls === 1 ? 'BALL' : 'BALLS') + '</text>';
+  }
+  for (i = 0; i < n; i++) {
+    var val = placed[i], giv = !!givens[i], sel = o.selSpot === i;
+    var missed = full && land[i] === 0 && !o.solved, hit2 = land[i] > 1 && !o.solved;
+    var label = 'Spot ' + (i + 1) + (val ? ', ' + val + (giv ? ', fixed' : '') : ', empty') + (hit2 ? ', two arrows land here' : '');
+    var X = f1(pts[i][0]), Y = f1(pts[i][1]);
+    h += '<g class="spot" data-i="' + i + '" role="button" tabindex="0" aria-label="' + label + '">';
+    if (hit2 || missed) h += '<circle cx="' + X + '" cy="' + Y + '" r="' + (r + 8) + '" fill="none" stroke="#FFFFFF" stroke-width="4"' + (missed ? ' stroke-dasharray="4 7"' : '') + '/>';
+    else if (giv) h += '<circle cx="' + X + '" cy="' + Y + '" r="' + (r + 6) + '" fill="none" stroke="#F4F1E8" stroke-width="2.5"/>';
+    if (val) {
+      h += '<circle cx="' + X + '" cy="' + Y + '" r="' + r + '" fill="' + COL[val] + '"/>';
+      h += '<path d="M' + f1(pts[i][0] - r * 0.62) + ' ' + f1(pts[i][1] - r * 0.42) + 'a' + f1(r * 0.75) + ' ' + f1(r * 0.75) + ' 0 0 1 ' + f1(r * 0.55) + ' -' + f1(r * 0.4) + '" fill="none" stroke="#FFFFFF" stroke-opacity=".4" stroke-width="3" stroke-linecap="round"/>';
+      h += '<text x="' + X + '" y="' + f1(pts[i][1] + r * 0.36) + '" text-anchor="middle" font-size="' + (r * 1.05).toFixed(0) + '" font-weight="600" fill="#23253D">' + val + '</text>';
+    } else {
+      h += '<circle cx="' + X + '" cy="' + Y + '" r="' + r + '" fill="' + (sel ? '#454A7A' : '#353959') + '" stroke="' + (sel ? '#F4F1E8' : '#9A9CC0') + '" stroke-width="' + (sel ? 4 : 2) + '"' + (sel ? '' : ' stroke-dasharray="5 6"') + '/>';
+    }
+    h += '</g>';
+  }
+  return h;
+}
+function fmt(t) { var m = Math.floor(t / 60), s = Math.floor(t % 60); return m + ':' + (s < 10 ? '0' : '') + s; }
+function save() {
+  store.set(S.n + ':' + S.idx, { p: S.placed, h: S.hints, t: S.elapsed + (S.start ? (Date.now() - S.start) / 1000 : 0), d: S.done });
+  store.set('last', { n: S.n, idx: S.idx });
+}
+function load(n, idx) {
+  S.n = n; S.idx = idx;
+  var p = puzzle(), sv = store.get(n + ':' + idx);
+  S.placed = p.g.slice(); S.hist = []; S.hints = 0; S.elapsed = 0; S.start = 0; S.done = false; S.selTile = null; S.selSpot = null;
+  if (sv && sv.p && sv.p.length === n) {
+    var ok = true; for (var i = 0; i < n; i++) if (p.g[i] && sv.p[i] !== p.g[i]) ok = false;
+    if (ok) { S.placed = sv.p.map(function (v) { return v || 0; }); S.hints = sv.h || 0; S.elapsed = sv.t || 0; S.done = !!sv.d; }
+  }
+  store.set('last', { n: n, idx: idx });
+  render();
+}
+function isSolved() {
+  var n = S.n; if (!S.placed.every(function (v) { return !!v; })) return false;
+  return landings(n, S.placed).every(function (c) { return c === 1; });
+}
+function touch() { if (!S.start && !S.done) S.start = Date.now(); }
+function place(spot, val) {
+  touch(); S.hist.push(S.placed.slice()); S.placed[spot] = val; S.selTile = null; S.selSpot = null; after();
+}
+function after() {
+  if (isSolved() && !S.done) { S.done = true; S.elapsed += S.start ? (Date.now() - S.start) / 1000 : 0; S.start = 0; }
+  save(); render();
+}
+function render() {
+  var p = puzzle(), n = S.n, total = BANK[n].length;
+  document.getElementById('num').textContent = 'No. ' + (S.idx + 1) + ' of ' + total;
+  document.getElementById('prev').disabled = S.idx === 0;
+  document.getElementById('next').disabled = S.idx === total - 1;
+  Array.prototype.forEach.call(document.querySelectorAll('.sizes button'), function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.n) === n)); });
+  document.getElementById('board').innerHTML = drawBoard(n, S.placed, p.g, { selSpot: S.selSpot, solved: S.done, balls: p.s.reduce(function (a, b) { return a + b; }, 0) / n });
+  document.getElementById('app').classList.toggle('solved', S.done);
+  var rack = rackOf(), rh = '', seenSel = false;
+  rack.forEach(function (v) {
+    var sel = S.selTile === v && !seenSel; if (sel) seenSel = true;
+    rh += '<button data-v="' + v + '"' + (sel ? ' class="sel"' : '') + ' style="background:' + COL[v] + '" aria-label="Number ' + v + (sel ? ', selected' : '') + '">' + v + '</button>';
+  });
+  document.getElementById('rack').innerHTML = rh;
+  var land = landings(n, S.placed), clash = land.some(function (c) { return c > 1; }), msg = document.getElementById('msg');
+  msg.className = 'msg';
+  if (clash) { msg.className = 'msg bad'; msg.textContent = 'Two arrows land on the same spot.'; }
+  else if (S.selTile) msg.innerHTML = 'Now tap an empty spot for the <b>&nbsp;' + S.selTile + '</b>.';
+  else if (S.selSpot !== null) msg.textContent = 'Now tap a number to put on that spot.';
+  else msg.textContent = 'Each number jumps that many spots clockwise. Land on every spot exactly once.';
+  if (S.done) {
+    var sum = p.s.reduce(function (a, b) { return a + b; }, 0), balls = sum / n;
+    document.getElementById('doneBig').textContent = 'Solved in ' + fmt(S.elapsed) + ' · ' + S.hints + (S.hints === 1 ? ' hint' : ' hints');
+    document.getElementById('doneSub').textContent = 'Jugglers would write this trick as ' + p.s.join(' ') + '. It takes ' + balls + (balls === 1 ? ' ball.' : ' balls.');
+    document.getElementById('nextBtn').style.visibility = S.idx === total - 1 ? 'hidden' : 'visible';
+  }
+}
+function tapSpot(i) {
+  var p = puzzle(); if (S.done || p.g[i]) return;
+  if (S.placed[i]) { touch(); S.hist.push(S.placed.slice()); S.placed[i] = 0; S.selSpot = null; S.selTile = null; after(); return; }
+  if (S.selTile) { place(i, S.selTile); return; }
+  S.selSpot = S.selSpot === i ? null : i; render();
+}
+function tapTile(v) {
+  if (S.done) return;
+  if (S.selSpot !== null) { place(S.selSpot, v); return; }
+  S.selTile = S.selTile === v ? null : v; render();
+}
+document.getElementById('board').addEventListener('click', function (e) {
+  var g = e.target.closest ? e.target.closest('.spot') : null; if (g) tapSpot(Number(g.dataset.i));
+});
+document.getElementById('board').addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  var g = e.target.closest ? e.target.closest('.spot') : null; if (g) { e.preventDefault(); tapSpot(Number(g.dataset.i)); }
+});
+document.getElementById('rack').addEventListener('click', function (e) {
+  var b = e.target.closest ? e.target.closest('button') : null; if (b) tapTile(Number(b.dataset.v));
+});
+document.getElementById('hint').addEventListener('click', function () {
+  if (S.done) return; var p = puzzle(), n = S.n, i, target = -1;
+  for (i = 0; i < n; i++) if (S.placed[i] && S.placed[i] !== p.s[i]) { target = i; break; }
+  if (target < 0 && S.selSpot !== null && !S.placed[S.selSpot]) target = S.selSpot;
+  if (target < 0) for (i = 0; i < n; i++) if (!S.placed[i]) { target = i; break; }
+  if (target < 0) return;
+  touch(); S.hist.push(S.placed.slice());
+  var want = p.s[target], rack; S.placed[target] = 0; rack = rackOf();
+  if (rack.indexOf(want) < 0) { for (i = 0; i < n; i++) if (!p.g[i] && i !== target && S.placed[i] === want && p.s[i] !== want) { S.placed[i] = 0; break; } }
+  S.placed[target] = want; S.hints++; S.selTile = null; S.selSpot = null; after();
+});
+document.getElementById('undo').addEventListener('click', function () {
+  if (S.done || !S.hist.length) return; S.placed = S.hist.pop(); S.selTile = null; S.selSpot = null; after();
+});
+document.getElementById('reset').addEventListener('click', function () {
+  if (S.done) return; touch(); S.hist.push(S.placed.slice()); S.placed = puzzle().g.slice(); S.selTile = null; S.selSpot = null; after();
+});
+document.getElementById('prev').addEventListener('click', function () { if (S.idx > 0) load(S.n, S.idx - 1); });
+document.getElementById('next').addEventListener('click', function () { if (S.idx < BANK[S.n].length - 1) load(S.n, S.idx + 1); });
+document.getElementById('nextBtn').addEventListener('click', function () { if (S.idx < BANK[S.n].length - 1) load(S.n, S.idx + 1); });
+document.getElementById('again').addEventListener('click', function () {
+  S.placed = puzzle().g.slice(); S.hist = []; S.hints = 0; S.elapsed = 0; S.start = 0; S.done = false; S.selTile = null; S.selSpot = null; save(); render();
+});
+document.getElementById('copy').addEventListener('click', function () {
+  var name = S.n === 5 ? 'Small' : S.n === 7 ? 'Medium' : 'Large';
+  var text = 'Juggle ' + name + ' No. ' + (S.idx + 1) + ': ' + fmt(S.elapsed) + ', ' + S.hints + (S.hints === 1 ? ' hint' : ' hints');
+  var b = this;
+  try { navigator.clipboard.writeText(text).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy result'; }, 1500); }, function () { b.textContent = 'Could not copy'; }); } catch (e) { b.textContent = 'Could not copy'; }
+});
+Array.prototype.forEach.call(document.querySelectorAll('.sizes button'), function (b) {
+  b.addEventListener('click', function () {
+    var n = Number(b.dataset.n), last = store.get('at' + n); load(n, last && last.idx < BANK[n].length ? last.idx : 0);
+  });
+});
+var _load = load;
+load = function (n, idx) { _load(n, idx); store.set('at' + n, { idx: idx }); };
+function openHelp() {
+  document.getElementById('helpPic').innerHTML = '<svg viewBox="0 0 360 360" role="img" aria-label="A solved ring of five spots holding 2, 4, 4, 1, 4">' + drawBoard(5, [2, 4, 4, 1, 4], [0, 0, 0, 1, 0], { id: 'h' }) + '</svg>';
+  document.getElementById('help').classList.add('open');
+}
+document.getElementById('helpBtn').addEventListener('click', openHelp);
+document.getElementById('closeHelp').addEventListener('click', function () { document.getElementById('help').classList.remove('open'); store.set('seenHelp', 1); });
+document.getElementById('erase').addEventListener('click', function () { store.clear(); document.getElementById('help').classList.remove('open'); load(5, 0); });
+(function () {
+  var last = store.get('last');
+  if (last && BANK[last.n] && last.idx < BANK[last.n].length) load(last.n, last.idx); else load(5, 0);
+  if (!store.get('seenHelp')) openHelp();
+})();
+</script>
+</body>
+</html>
