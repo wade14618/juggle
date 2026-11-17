@@ -42,11 +42,21 @@ h1 svg{overflow:visible}
 .ctl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .ctl button,.done button{height:48px;border-radius:24px;border:1.5px solid var(--edge);background:var(--panel);font-family:var(--display);font-size:16px;font-weight:600}
 .done{display:none;flex-direction:column;gap:12px;align-items:center;text-align:center}
-.done .big{font-family:var(--display);font-size:20px;font-weight:600}
+.done .big{font-size:15px;color:var(--mute)}
 .done .sub{font-size:15px;line-height:21px;color:var(--mute)}
 .done .row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
 .done button.primary{background:var(--sun);border-color:var(--sun);color:#23253D}
 .solved .done{display:flex}
+.win{display:none;text-align:center}
+.solved .win{display:block}
+.solved #board{display:none}
+.win .w1{font-family:var(--display);font-size:30px;font-weight:600;color:var(--sun);margin:4px 0 0}
+.win .w2{font-family:var(--display);font-size:19px;font-weight:500;margin:4px 0 2px}
+.win .w3{font-size:15px;color:var(--mute);margin:0}
+#juggler{width:100%;display:block;margin-top:4px}
+#winSeq{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+#winSeq b{width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:15px;font-weight:600;color:#23253D;opacity:.45}
+#winSeq b.on{opacity:1;outline:2px solid var(--ink);outline-offset:2px}
 .solved .play{display:none}
 #help{position:fixed;inset:0;background:rgba(20,22,40,.55);display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:16px}
 #help.open{display:flex}
@@ -72,6 +82,7 @@ h1 svg{overflow:visible}
 <button data-n="5">Small</button><button data-n="7">Medium</button><button data-n="9">Large</button>
 </div>
 <svg id="board" viewBox="0 0 360 360" role="group" aria-label="Juggle board"></svg>
+<div class="win" aria-live="polite"><p class="w1">Solved!!</p><p class="w2" id="winMsg"></p><p class="w3">Here it is in action.</p><svg id="juggler" viewBox="0 0 340 240" role="img" aria-label="Juggling animation of the solved pattern"></svg><div id="winSeq"></div></div>
 <div class="play">
 <div class="msg" id="msg"></div>
 <div class="racklabel">Numbers to place</div>
@@ -80,7 +91,6 @@ h1 svg{overflow:visible}
 </div>
 <div class="done">
 <div class="big" id="doneBig"></div>
-<div class="sub" id="doneSub"></div>
 <div class="row"><button class="primary" id="nextBtn">Next puzzle</button><button id="again">Play again</button><button id="copy">Copy result</button></div>
 </div>
 </div>
@@ -103,7 +113,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down their tricks. Each number is how many beats a ball stays in the air, and a trick only works if no two balls come down on the same beat. Every puzzle you solve here is a real juggling pattern.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 11</div>
+<div class="small">Version 12</div>
 </div>
 </div>
 <script>
@@ -191,6 +201,42 @@ function drawBoard(n, placed, givens, o) {
   }
   return h;
 }
+var WINMSG = { 2: 'Two balls. A gentle warm-up.', 3: 'A classic three-ball trick.', 4: 'Four balls in the air!', 5: 'Five balls. Circus-ready.', 6: 'Six balls! That takes a pro.', 7: 'Seven balls! World-class.' };
+var JG = { key: null, raf: 0 };
+function stopJuggle() { if (JG.raf) cancelAnimationFrame(JG.raf); JG.raf = 0; JG.key = null; }
+function startJuggle(s, key) {
+  if (JG.key === key) return;
+  stopJuggle(); JG.key = key;
+  var n = s.length, balls = s.reduce(function (a, b) { return a + b; }, 0) / n, land = {}, next = 0, per = {}, b, v, id, k;
+  for (b = 0; b < 1200; b++) { v = s[b % n]; id = land[b]; if (id === undefined) id = next++; (per[id] = per[id] || []).push({ b: b, v: v }); land[b + v] = id; }
+  var BEAT = 1, D = 0.5, FLOOR = 202, XS = 76, CX = 170, BR = 12.5, maxv = Math.max.apply(null, s), mT = Math.max(maxv - D, 0.6), g = 8 * 165 / (mT * mT), start = n * 2 * maxv;
+  var svg = document.getElementById('juggler'), ns = 'http://www.w3.org/2000/svg', els = [];
+  svg.innerHTML = '<ellipse cx="' + (CX + XS * 0.7) + '" cy="' + (FLOOR + 15) + '" rx="28" ry="7" fill="#4D5180"/><ellipse cx="' + (CX - XS * 0.7) + '" cy="' + (FLOOR + 15) + '" rx="28" ry="7" fill="#4D5180"/>';
+  for (k = 0; k < balls; k++) { var c = document.createElementNS(ns, 'circle'); c.setAttribute('r', BR); svg.appendChild(c); els.push(c); }
+  var sq = document.getElementById('winSeq'), sh = '';
+  s.forEach(function (x) { sh += '<b style="background:' + COL[x] + '">' + x + '</b>'; });
+  sq.innerHTML = sh;
+  var marks = sq.children, last = -1;
+  function sideX(h, inner) { return CX + (h === 0 ? 1 : -1) * XS * (inner ? 0.35 : 1.05); }
+  function pos(list, t) {
+    for (var i = list.length - 1; i >= 0; i--) { var th = list[i]; if (th.b <= t) {
+      var v = th.v, h = th.b % 2, lh = (th.b + v) % 2, ft = v - D, u = t - th.b;
+      if (u < ft) { var x0 = sideX(h, true), x1 = sideX(lh, false), vy = g * ft / 2; return [x0 + (x1 - x0) * (u / ft), FLOOR - (vy * u - 0.5 * g * u * u), v]; }
+      var w = (u - ft) / D, xa = sideX(lh, false), xb = sideX(lh, true); return [xa + (xb - xa) * w, FLOOR + 10 * Math.sin(Math.PI * w), v];
+    } }
+    return null;
+  }
+  function draw(t) {
+    for (var i = 0; i < balls; i++) { var q = pos(per[i], t), e = els[i]; if (!q) { e.setAttribute('visibility', 'hidden'); continue; }
+      e.setAttribute('visibility', 'visible'); e.setAttribute('cx', q[0].toFixed(1)); e.setAttribute('cy', q[1].toFixed(1)); e.setAttribute('fill', COL[q[2]]); }
+    var cur = Math.floor(t) % n; if (cur !== last) { for (var j = 0; j < n; j++) marks[j].className = j === cur ? 'on' : ''; last = cur; }
+  }
+  var still = false; try { still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  if (still) { draw(start + 0.25); return; }
+  var t0 = 0, span = 1200 - start - 2 * maxv - 2;
+  function frame(now) { if (!t0) t0 = now; draw(start + ((now - t0) / 1000 / BEAT) % span); JG.raf = requestAnimationFrame(frame); }
+  JG.raf = requestAnimationFrame(frame);
+}
 function fmt(t) { var m = Math.floor(t / 60), s = Math.floor(t % 60); return m + ':' + (s < 10 ? '0' : '') + s; }
 function save() {
   store.set(S.n + ':' + S.idx, { p: S.placed, h: S.hints, t: S.elapsed + (S.start ? (Date.now() - S.start) / 1000 : 0), d: S.done });
@@ -227,6 +273,7 @@ function render() {
   Array.prototype.forEach.call(document.querySelectorAll('.sizes button'), function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.n) === n)); });
   document.getElementById('board').innerHTML = drawBoard(n, S.placed, p.g, { selSpot: S.selSpot, solved: S.done, balls: p.s.reduce(function (a, b) { return a + b; }, 0) / n });
   document.getElementById('app').classList.toggle('solved', S.done);
+  if (!S.done) stopJuggle();
   var rack = rackOf(), rh = '', seenSel = false;
   rack.forEach(function (v) {
     var sel = S.selTile === v && !seenSel; if (sel) seenSel = true;
@@ -242,7 +289,8 @@ function render() {
   if (S.done) {
     var sum = p.s.reduce(function (a, b) { return a + b; }, 0), balls = sum / n;
     document.getElementById('doneBig').textContent = 'Solved in ' + fmt(S.elapsed) + ' · ' + S.hints + (S.hints === 1 ? ' hint' : ' hints');
-    document.getElementById('doneSub').textContent = 'Jugglers would write this trick as ' + p.s.join(' ') + '. It takes ' + balls + (balls === 1 ? ' ball.' : ' balls.');
+    document.getElementById('winMsg').textContent = WINMSG[balls] || (balls + ' balls in the air!');
+    startJuggle(p.s, n + ':' + S.idx);
     document.getElementById('nextBtn').style.visibility = S.idx === total - 1 ? 'hidden' : 'visible';
   }
 }
