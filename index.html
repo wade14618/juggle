@@ -46,7 +46,7 @@ h1 svg{overflow:visible}
 .racklabel{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);text-align:center}
 .ctl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .ctl button,.done button{height:48px;border-radius:24px;border:1.5px solid var(--edge);background:var(--panel);font-family:var(--display);font-size:16px;font-weight:600}
-.done{display:none;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.done{display:none;flex-direction:column;gap:24px;align-items:center;text-align:center}
 .done .big{font-size:15px;color:var(--mute)}
 .done .sub{font-size:15px;line-height:21px;color:var(--mute)}
 .done .row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
@@ -58,8 +58,8 @@ h1 svg{overflow:visible}
 .win .w1{font-family:var(--display);font-size:30px;font-weight:600;color:var(--sun);margin:4px 0 0}
 .win .w2{font-family:var(--display);font-size:19px;font-weight:500;margin:4px 0 2px}
 .win .w3{font-size:15px;color:var(--mute);margin:0}
-#juggler{width:100%;display:block;margin-top:4px}
-#winSeq{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+#juggler{width:100%;display:block;margin:4px 0 16px}
+#winSeq{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:14px}
 #winSeq b{width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:15px;font-weight:600;color:#23253D;opacity:.45}
 #winSeq b.on{opacity:1;outline:2px solid var(--ink);outline-offset:2px}
 .solved .play{display:none}
@@ -121,7 +121,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down their tricks. Each number is how many beats a ball stays in the air, and a trick only works if no two balls come down on the same beat. Every puzzle you solve here is a real juggling pattern.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 27</div>
+<div class="small">Version 28</div>
 </div>
 </div>
 <script>
