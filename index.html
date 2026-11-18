@@ -65,7 +65,8 @@ h1 svg{overflow:visible}
 #help.open{display:flex}
 #help .sheet{position:relative;background:var(--panel);border-radius:20px;max-width:420px;width:100%;padding:18px 18px 22px}
 #help h2{font-family:var(--display);margin:0 0 6px;font-size:24px;padding-right:48px}
-#help .x{position:absolute;top:8px;right:8px;width:44px;height:44px;border:0;border-radius:22px;background:transparent;color:var(--ink);font-size:30px;line-height:44px;padding:0}
+#help .x{position:absolute;top:10px;right:10px;width:44px;height:44px;border:1.5px solid var(--edge);border-radius:22px;background:#474B78;color:var(--ink);padding:0;display:flex;align-items:center;justify-content:center}
+#help .x svg{width:18px;height:18px;margin:0;background:none;border-radius:0}
 #help h3{font-family:var(--display);margin:16px 0 4px;font-size:17px}
 #help p,#help li{font-size:15px;line-height:22px;margin:4px 0;color:var(--ink)}
 #help ol{padding-left:22px;margin:6px 0}
@@ -100,7 +101,7 @@ h1 svg{overflow:visible}
 </div>
 <div id="help" role="dialog" aria-modal="true" aria-label="How to play">
 <div class="sheet">
-<button class="x" id="xHelp" aria-label="Close">&#215;</button>
+<button class="x" id="xHelp" aria-label="Close"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 2L16 16M16 2L2 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></button>
 <h2>How to play</h2>
 <ol>
 <li>Every number is a <b>jump</b>. A 3 jumps three spots clockwise. Jumps wrap around the ring.</li>
@@ -118,7 +119,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down their tricks. Each number is how many beats a ball stays in the air, and a trick only works if no two balls come down on the same beat. Every puzzle you solve here is a real juggling pattern.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 19</div>
+<div class="small">Version 20</div>
 </div>
 </div>
 <script>
