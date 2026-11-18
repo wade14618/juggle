@@ -123,7 +123,7 @@ h1 svg{overflow:visible}
 <p>Start with Small. Tap or drag any number onto an empty spot and watch where its arrow lands. If you get stuck, <b>Hint</b> places one number for you.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 32</div>
+<div class="small">Version 33</div>
 </div>
 </div>
 <script>
@@ -288,10 +288,11 @@ function render() {
   document.getElementById('board').innerHTML = drawBoard(n, S.placed, p.g, { selSpot: S.selSpot, solved: S.done, balls: p.s.reduce(function (a, b) { return a + b; }, 0) / n });
   document.getElementById('app').classList.toggle('solved', S.done);
   if (!S.done) stopJuggle();
-  var rack = rackOf(), rh = '', seenSel = false;
-  rack.forEach(function (v) {
-    var sel = S.selTile === v && !seenSel; if (sel) seenSel = true;
-    rh += '<button data-v="' + v + '"' + (sel ? ' class="sel"' : '') + ' style="background:' + COL[v] + '" aria-label="Number ' + v + (sel ? ', selected' : '') + '">' + v + '</button>';
+  var rack = rackOf(), rh = '';
+  if (S.selTile && rack[S.selIdx] !== S.selTile) S.selIdx = rack.indexOf(S.selTile);
+  rack.forEach(function (v, k) {
+    var sel = S.selTile === v && S.selIdx === k;
+    rh += '<button data-v="' + v + '" data-k="' + k + '"' + (sel ? ' class="sel"' : '') + ' style="background:' + COL[v] + '" aria-label="Number ' + v + (sel ? ', selected' : '') + '">' + v + '</button>';
   });
   document.getElementById('rack').innerHTML = rh;
   var land = landings(n, S.placed), clash = land.some(function (c) { return c > 1; }), msg = document.getElementById('msg');
@@ -315,10 +316,11 @@ function tapSpot(i) {
   if (S.selTile) { place(i, S.selTile); return; }
   S.selSpot = S.selSpot === i ? null : i; render();
 }
-function tapTile(v) {
+function tapTile(v, k) {
   if (S.done) return;
   if (S.selSpot !== null) { place(S.selSpot, v); return; }
-  S.selTile = S.selTile === v ? null : v; render();
+  if (S.selTile === v && S.selIdx === k) S.selTile = null; else { S.selTile = v; S.selIdx = k; }
+  render();
 }
 
 /* Drag and drop: a second way to place, alongside tapping. */
@@ -418,7 +420,7 @@ document.getElementById('board').addEventListener('keydown', function (e) {
   var g = e.target.closest ? e.target.closest('.spot') : null; if (g) { e.preventDefault(); tapSpot(Number(g.dataset.i)); }
 });
 document.getElementById('rack').addEventListener('click', function (e) {
-  var b = e.target.closest ? e.target.closest('button') : null; if (b) tapTile(Number(b.dataset.v));
+  var b = e.target.closest ? e.target.closest('button') : null; if (b) tapTile(Number(b.dataset.v), Number(b.dataset.k));
 });
 document.getElementById('hint').addEventListener('click', function () {
   if (S.done) return; var p = puzzle(), n = S.n, i, target = -1;
