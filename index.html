@@ -125,7 +125,7 @@ h1 svg{overflow:visible}
 <p>Start with Small. Tap or drag any number onto an empty spot and watch where its arrow lands. If you get stuck, <b>Hint</b> places one number for you.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 36</div>
+<div class="small">Version 37</div>
 </div>
 </div>
 <script>
@@ -462,9 +462,9 @@ var _load = load;
 load = function (n, idx) { _load(n, idx); store.set('at' + n, { idx: idx }); };
 function openHelp() {
   disarmErase();
-  document.getElementById('help').scrollTop = 0;
   document.getElementById('helpPic').innerHTML = '<svg viewBox="0 0 360 360" role="img" aria-label="A solved ring of five spots holding 2, 4, 4, 1, 4">' + drawBoard(5, [2, 4, 4, 1, 4], [0, 0, 0, 1, 0], { id: 'h' }) + '</svg>';
   document.getElementById('help').classList.add('open');
+  document.getElementById('help').scrollTop = 0;
 }
 document.getElementById('helpBtn').addEventListener('click', openHelp);
 function closeHelp() { document.getElementById('help').classList.remove('open'); store.set('seenHelp', 1); }
