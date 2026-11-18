@@ -123,7 +123,7 @@ h1 svg{overflow:visible}
 <p>Start with Small. Tap or drag any number onto an empty spot and watch where its arrow lands. If you get stuck, <b>Hint</b> places one number for you.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 31</div>
+<div class="small">Version 32</div>
 </div>
 </div>
 <script>
@@ -299,7 +299,7 @@ function render() {
   if (clash) { msg.className = 'msg bad'; msg.textContent = 'Two balls land on the same spot.'; }
   else if (S.selTile) msg.innerHTML = '<span>Now tap an empty spot for the <b>' + S.selTile + '</b>.</span>';
   else if (S.selSpot !== null) msg.textContent = 'Now tap a number to put on that spot.';
-  else if (S.placed.every(function (v, i) { return !v || p.g[i]; })) msg.innerHTML = '<span>Start here: drag a number from below onto an empty spot.<br>It tosses its ball that many spots clockwise.</span>';
+  else if (S.placed.every(function (v, i) { return !v || p.g[i]; })) msg.innerHTML = '<span>Drag a number from below onto an empty spot.<br>It tosses its ball that many spots clockwise.</span>';
   else msg.innerHTML = '<span>Each number tosses its ball that many spots clockwise.<br>No two balls should land on the same spot.</span>';
   if (S.done) {
     var sum = p.s.reduce(function (a, b) { return a + b; }, 0), balls = sum / n;
