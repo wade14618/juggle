@@ -29,7 +29,7 @@ h1 svg{width:34px;height:34px}
 .sizes{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--panel);border-radius:26px;padding:4px}
 .sizes button{height:44px;border:0;border-radius:22px;background:transparent;font-family:var(--display);font-size:16px;font-weight:600;color:var(--mute)}
 .sizes button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
-#board{width:100%;display:block;touch-action:manipulation}
+#board{width:100%;display:block;touch-action:none}
 #board .spot{cursor:pointer}
 #board{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .ghost{position:fixed;left:0;top:0;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:29px;display:flex;align-items:center;justify-content:center;color:#23253D;font-family:var(--display);font-size:28px;font-weight:600;pointer-events:none;z-index:50;opacity:.95;box-shadow:0 0 0 3px var(--ink)}
@@ -41,7 +41,7 @@ h1 svg{overflow:visible}
 .msg.bad{color:var(--warn);font-weight:600}
 .play{display:flex;flex-direction:column;gap:12px}
 #rack{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:60px;align-items:center}
-#rack button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;width:54px;height:54px;border-radius:27px;border:0;color:#23253D;font-family:var(--display);font-size:26px;font-weight:700}
+#rack button{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;width:54px;height:54px;border-radius:27px;border:0;color:#23253D;font-family:var(--display);font-size:26px;font-weight:700}
 #rack button.sel{outline:4px solid var(--ink);outline-offset:3px;transform:translateY(-5px)}
 .racklabel{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);text-align:center}
 .ctl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -121,7 +121,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down their tricks. Each number is how many beats a ball stays in the air, and a trick only works if no two balls come down on the same beat. Every puzzle you solve here is a real juggling pattern.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 25</div>
+<div class="small">Version 26</div>
 </div>
 </div>
 <script>
@@ -277,6 +277,7 @@ function after() {
   save(); render();
 }
 function render() {
+  if (!DR.pend) clearGhosts();
   var p = puzzle(), n = S.n, total = BANK[n].length;
   document.getElementById('num').textContent = 'No. ' + (S.idx + 1) + ' of ' + total;
   document.getElementById('prev').disabled = S.idx === 0;
@@ -344,7 +345,14 @@ function dragPreview() {
   if (land.some(function (c) { return c > 1; })) { msg.className = 'msg bad'; msg.textContent = 'Two balls would land on the same spot.'; }
   else { msg.className = 'msg'; msg.innerHTML = '<span>' + (DR.target >= 0 ? 'Let go to place the <b>' + DR.v + '</b>.' : (DR.src === 'spot' ? 'Drop it on a spot, or off the ring to take it back.' : 'Drag the <b>' + DR.v + '</b> onto an empty spot.')) + '</span>'; }
 }
+function clearGhosts() {
+  Array.prototype.forEach.call(document.querySelectorAll('.ghost'), function (g) { g.remove(); });
+  Array.prototype.forEach.call(document.querySelectorAll('#rack .lifted'), function (b) { b.classList.remove('lifted'); });
+  DR.ghost = null;
+}
 function dragStart(e, src, v, from, el) {
+  if (DR.pend) dragEnd(null, true);
+  clearGhosts();
   if (S.done || (e.pointerType === 'mouse' && e.button !== 0)) return;
   DR.pend = true; DR.on = false; DR.src = src; DR.v = v; DR.from = from; DR.el = el; DR.x0 = e.clientX; DR.y0 = e.clientY; DR.target = -1; DR.pid = e.pointerId;
 }
@@ -354,6 +362,7 @@ function dragMove(e) {
   if (!DR.on) {
     if (Math.hypot(x - DR.x0, y - DR.y0) < 8) return;
     DR.on = true; S.selTile = null; S.selSpot = null; touch();
+    try { if (DR.cap) DR.cap.setPointerCapture(DR.pid); } catch (x) {}
     var g = document.createElement('div'); g.className = 'ghost'; g.style.background = COL[DR.v]; g.textContent = DR.v; document.body.appendChild(g); DR.ghost = g;
     if (DR.src === 'rack' && DR.el) DR.el.classList.add('lifted');
   }
@@ -365,8 +374,7 @@ function dragMove(e) {
 function dragEnd(e, cancel) {
   if (!DR.pend || (e && e.pointerId !== DR.pid)) return;
   var was = DR.on; DR.pend = false; DR.on = false; DR.drawn = false;
-  if (DR.ghost) { DR.ghost.remove(); DR.ghost = null; }
-  if (DR.el) DR.el.classList.remove('lifted');
+  clearGhosts();
   if (!was) return;
   DR.skipClick = true; setTimeout(function () { DR.skipClick = false; }, 120);
   if (!cancel && DR.target >= 0) {
@@ -376,16 +384,27 @@ function dragEnd(e, cancel) {
   render();
 }
 document.getElementById('rack').addEventListener('pointerdown', function (e) {
-  var b = e.target.closest ? e.target.closest('button') : null; if (b) dragStart(e, 'rack', Number(b.dataset.v), -1, b);
+  var b = e.target.closest ? e.target.closest('button') : null; if (!b) return;
+  dragStart(e, 'rack', Number(b.dataset.v), -1, b); DR.cap = this;
 });
 document.getElementById('board').addEventListener('pointerdown', function (e) {
   var g = e.target.closest ? e.target.closest('.spot') : null; if (!g) return;
   var i = Number(g.dataset.i), p = puzzle(); if (!S.placed[i] || p.g[i]) return;
-  dragStart(e, 'spot', S.placed[i], i, null);
+  dragStart(e, 'spot', S.placed[i], i, null); DR.cap = this;
 });
 window.addEventListener('pointermove', dragMove, { passive: false });
 window.addEventListener('pointerup', function (e) { dragEnd(e, false); });
 window.addEventListener('pointercancel', function (e) { dragEnd(e, true); });
+['board', 'rack'].forEach(function (id) {
+  var el = document.getElementById(id);
+  el.addEventListener('pointerup', function (e) { dragEnd(e, false); });
+  el.addEventListener('pointercancel', function (e) { dragEnd(e, true); });
+  el.addEventListener('lostpointercapture', function (e) { if (DR.pend && e.pointerId === DR.pid) dragEnd(null, !DR.on); });
+});
+window.addEventListener('touchend', function () { if (DR.pend) dragEnd(null, false); });
+window.addEventListener('touchcancel', function () { if (DR.pend) dragEnd(null, true); });
+window.addEventListener('blur', function () { if (DR.pend) dragEnd(null, true); });
+document.addEventListener('visibilitychange', function () { if (DR.pend) dragEnd(null, true); });
 document.addEventListener('touchmove', function (e) { if (DR.pend) e.preventDefault(); }, { passive: false });
 document.addEventListener('click', function (e) { if (DR.skipClick) { e.stopPropagation(); e.preventDefault(); DR.skipClick = false; } }, true);
 document.getElementById('board').addEventListener('click', function (e) {
