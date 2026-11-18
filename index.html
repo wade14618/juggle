@@ -17,6 +17,7 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body)
 button{font-family:inherit;color:inherit;cursor:pointer}
 button:focus-visible,.spot:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
 #app{max-width:440px;margin:0 auto;padding:10px 16px calc(96px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px}
+html.homescreen #app{gap:18px;padding-top:14px;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
 header{display:flex;align-items:center;justify-content:space-between;height:52px}
 h1{font-family:var(--display);font-weight:600;font-size:28px;margin:0;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
 h1 svg{width:34px;height:34px}
@@ -63,8 +64,10 @@ h1 svg{overflow:visible}
 .solved .play{display:none}
 #help{position:fixed;inset:0;background:rgba(20,22,40,.55);display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:16px}
 #help.open{display:flex}
-#help .sheet{background:var(--panel);border-radius:20px;max-width:420px;width:100%;padding:18px 18px 22px}
-#help h2{font-family:var(--display);margin:0 0 6px;font-size:24px}
+#help .sheet{position:relative;background:var(--panel);border-radius:20px;max-width:420px;width:100%;padding:18px 18px 22px}
+#help h2{font-family:var(--display);margin:0 0 6px;font-size:24px;padding-right:48px}
+#help .x{position:absolute;top:10px;right:10px;width:44px;height:44px;border:1.5px solid var(--edge);border-radius:22px;background:#474B78;color:var(--ink);padding:0;display:flex;align-items:center;justify-content:center}
+#help .x svg{width:18px;height:18px;margin:0;background:none;border-radius:0}
 #help h3{font-family:var(--display);margin:16px 0 4px;font-size:17px}
 #help p,#help li{font-size:15px;line-height:22px;margin:4px 0;color:var(--ink)}
 #help ol{padding-left:22px;margin:6px 0}
@@ -99,6 +102,7 @@ h1 svg{overflow:visible}
 </div>
 <div id="help" role="dialog" aria-modal="true" aria-label="How to play">
 <div class="sheet">
+<button class="x" id="xHelp" aria-label="Close"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 2L16 16M16 2L2 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></button>
 <h2>How to play</h2>
 <ol>
 <li>Every number is a <b>jump</b>. A 3 jumps three spots clockwise. Jumps wrap around the ring.</li>
@@ -116,10 +120,14 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down their tricks. Each number is how many beats a ball stays in the air, and a trick only works if no two balls come down on the same beat. Every puzzle you solve here is a real juggling pattern.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 17</div>
+<div class="small">Version 21</div>
 </div>
 </div>
 <script>
+(function () {
+  var home = false; try { home = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches); } catch (e) {}
+  if (home) { document.documentElement.classList.add('homescreen'); document.getElementById('board').setAttribute('viewBox', '0 0 360 360'); }
+})();
 var BANK = {"5":[{"g":[0,0,0,1,0],"s":[2,4,4,1,4]},{"g":[0,3,1,0,0],"s":[5,3,1,4,2]},{"g":[3,0,0,0,0],"s":[3,4,2,4,2]},{"g":[1,3,0,0,0],"s":[1,3,1,2,3]},{"g":[0,0,0,3,0],"s":[4,1,1,3,1]},{"g":[0,0,0,0,2],"s":[3,1,3,1,2]},{"g":[0,0,3,0,0],"s":[1,1,3,1,4]},{"g":[5,0,0,0,4],"s":[5,1,2,3,4]},{"g":[0,3,0,0,0],"s":[5,3,4,4,4]},{"g":[0,0,0,1,2],"s":[2,4,1,1,2]},{"g":[0,0,1,0,0],"s":[5,3,1,3,3]},{"g":[0,3,0,2,0],"s":[3,3,5,2,2]},{"g":[4,2,0,0,0],"s":[4,2,5,3,1]},{"g":[2,0,4,0,0],"s":[2,3,4,5,1]},{"g":[0,0,0,0,1],"s":[2,2,2,3,1]},{"g":[0,0,0,5,0],"s":[2,4,2,5,2]},{"g":[0,0,1,0,0],"s":[4,4,1,3,3]},{"g":[0,5,0,0,0],"s":[4,5,3,4,4]},{"g":[0,0,0,1,4],"s":[2,5,3,1,4]},{"g":[0,3,0,0,0],"s":[1,3,1,4,1]},{"g":[0,0,1,0,1],"s":[4,5,1,4,1]},{"g":[0,0,2,0,0],"s":[1,1,2,5,1]},{"g":[0,4,0,0,0],"s":[1,4,1,1,3]},{"g":[4,0,4,0,0],"s":[4,4,4,5,3]},{"g":[0,3,0,3,0],"s":[2,3,3,3,4]},{"g":[4,0,0,0,2],"s":[4,1,3,5,2]},{"g":[0,0,0,0,4],"s":[1,1,2,2,4]},{"g":[2,0,0,0,0],"s":[2,5,1,1,1]},{"g":[0,0,3,4,0],"s":[1,3,3,4,4]},{"g":[0,0,0,0,5],"s":[3,1,3,3,5]},{"g":[0,0,1,2,0],"s":[4,1,1,2,2]},{"g":[5,0,0,0,0],"s":[5,2,2,3,3]},{"g":[5,0,0,0,0],"s":[5,1,1,1,2]},{"g":[0,0,0,5,0],"s":[2,3,3,5,2]},{"g":[0,0,4,0,0],"s":[3,3,4,2,3]},{"g":[0,0,3,0,0],"s":[4,2,3,4,2]},{"g":[0,0,2,0,0],"s":[1,4,2,4,4]},{"g":[2,2,0,0,0],"s":[2,2,4,1,1]},{"g":[0,3,0,0,4],"s":[1,3,5,2,4]},{"g":[1,2,0,0,0],"s":[1,2,3,4,5]},{"g":[3,0,0,0,0],"s":[3,1,2,2,2]},{"g":[1,0,1,0,0],"s":[1,1,1,2,5]},{"g":[3,0,0,0,0],"s":[3,4,4,4,5]},{"g":[2,2,0,0,0],"s":[2,2,3,3,5]},{"g":[0,0,0,0,4],"s":[2,5,2,2,4]},{"g":[0,0,0,1,1],"s":[3,1,4,1,1]},{"g":[0,1,0,0,0],"s":[4,1,4,2,4]},{"g":[0,1,0,1,0],"s":[5,1,4,1,4]},{"g":[0,0,5,0,0],"s":[1,2,5,1,1]},{"g":[0,1,0,0,5],"s":[3,1,4,2,5]},{"g":[0,0,5,0,0],"s":[4,4,5,3,4]},{"g":[0,0,5,0,0],"s":[3,3,5,3,1]},{"g":[0,0,0,0,5],"s":[2,2,4,2,5]},{"g":[0,5,2,0,0],"s":[3,5,2,4,1]},{"g":[0,4,1,0,0],"s":[1,4,1,4,5]},{"g":[0,0,2,0,0],"s":[3,4,2,3,3]},{"g":[4,0,3,0,0],"s":[4,1,3,3,4]},{"g":[0,0,0,3,0],"s":[2,4,2,3,4]},{"g":[0,0,0,5,0],"s":[1,3,3,5,3]},{"g":[0,4,0,1,0],"s":[1,4,5,1,4]}],"7":[{"g":[3,5,6,0,0,0,0],"s":[3,5,6,4,7,4,6]},{"g":[7,0,0,0,2,0,3],"s":[7,4,1,1,2,3,3]},{"g":[0,5,0,4,0,0,0],"s":[4,5,1,4,1,3,3]},{"g":[0,2,6,0,0,0,6],"s":[7,2,6,3,5,6,6]},{"g":[1,0,1,0,7,0,0],"s":[1,6,1,3,7,4,6]},{"g":[0,6,2,0,0,0,3],"s":[5,6,2,3,4,5,3]},{"g":[0,4,0,0,0,3,0],"s":[2,4,5,7,2,3,5]},{"g":[0,5,0,0,0,0,4],"s":[7,5,6,6,1,6,4]},{"g":[2,2,0,0,0,1,0],"s":[2,2,5,5,7,1,6]},{"g":[0,0,1,0,0,0,7],"s":[5,3,1,5,5,2,7]},{"g":[1,0,4,0,0,6,0],"s":[1,6,4,7,5,6,6]},{"g":[0,0,0,7,0,0,5],"s":[1,1,4,7,1,2,5]},{"g":[0,3,0,0,2,0,0],"s":[2,3,6,2,2,2,4]},{"g":[3,0,0,3,1,0,0],"s":[3,3,5,3,1,4,2]},{"g":[0,0,3,0,5,0,0],"s":[4,2,3,3,5,2,2]},{"g":[0,0,2,0,0,0,6],"s":[1,1,2,7,3,1,6]},{"g":[1,5,0,0,0,0,4],"s":[1,5,2,6,1,2,4]},{"g":[3,0,2,0,0,2,0],"s":[3,4,2,6,4,2,7]},{"g":[0,5,6,0,0,0,5],"s":[3,5,6,6,1,2,5]},{"g":[0,0,3,0,2,0,0],"s":[4,7,3,4,2,4,4]},{"g":[0,2,0,0,0,4,0],"s":[6,2,6,1,3,4,6]},{"g":[0,0,0,0,2,0,3],"s":[4,4,1,4,2,3,3]},{"g":[0,2,0,5,0,0,0],"s":[4,2,3,5,2,2,3]},{"g":[2,0,2,0,0,0,0],"s":[2,6,2,5,6,1,6]},{"g":[0,0,0,7,0,0,6],"s":[6,1,6,7,3,6,6]},{"g":[0,0,4,4,0,3,0],"s":[2,2,4,4,1,3,5]},{"g":[6,0,0,0,0,2,0],"s":[6,1,1,5,1,2,5]},{"g":[2,0,1,0,0,0,0],"s":[2,6,1,1,4,1,6]},{"g":[1,0,0,0,5,0,1],"s":[1,4,4,7,5,6,1]},{"g":[3,0,0,4,0,0,0],"s":[3,5,2,4,5,7,2]},{"g":[0,2,2,0,2,0,0],"s":[5,2,2,5,2,4,1]},{"g":[0,0,0,7,0,4,0],"s":[1,3,4,7,1,4,1]},{"g":[2,0,6,0,0,0,0],"s":[2,3,6,3,3,7,4]},{"g":[0,3,0,0,0,0,6],"s":[2,3,4,4,4,5,6]},{"g":[0,0,0,0,7,4,0],"s":[3,6,3,3,7,4,2]},{"g":[0,7,0,2,0,5,0],"s":[4,7,4,2,5,5,1]},{"g":[5,5,0,0,0,6,0],"s":[5,5,1,6,3,6,2]},{"g":[7,3,3,0,0,0,0],"s":[7,3,3,5,2,4,4]},{"g":[5,0,0,0,6,0,0],"s":[5,1,4,1,6,3,1]},{"g":[5,0,0,0,5,0,5],"s":[5,6,1,3,5,3,5]},{"g":[0,5,0,5,0,0,0],"s":[2,5,1,5,1,6,1]},{"g":[0,3,5,0,0,3,0],"s":[6,3,5,6,1,3,4]},{"g":[0,0,0,1,0,0,4],"s":[2,7,3,1,2,2,4]},{"g":[6,0,6,0,0,0,6],"s":[6,2,6,4,5,6,6]},{"g":[0,0,6,1,0,4,0],"s":[7,5,6,1,1,4,4]},{"g":[2,4,0,0,0,0,2],"s":[2,4,4,7,3,6,2]},{"g":[3,3,0,0,0,0,0],"s":[3,3,4,5,1,4,1]},{"g":[5,0,7,0,0,0,0],"s":[5,6,7,3,4,6,4]},{"g":[3,0,0,0,0,1,2],"s":[3,1,2,4,1,1,2]},{"g":[3,6,0,0,0,0,7],"s":[3,6,3,6,4,6,7]},{"g":[5,0,0,0,0,0,1],"s":[5,3,1,3,4,4,1]},{"g":[2,0,3,3,0,0,0],"s":[2,2,3,3,4,2,5]},{"g":[0,0,0,5,1,0,0],"s":[6,6,1,5,1,6,3]},{"g":[0,0,0,3,0,3,1],"s":[2,4,2,3,6,3,1]},{"g":[0,2,0,2,0,0,7],"s":[4,2,5,2,5,3,7]},{"g":[4,5,0,0,0,2,0],"s":[4,5,3,7,5,2,2]},{"g":[0,0,0,0,6,0,2],"s":[5,1,5,1,6,1,2]},{"g":[0,1,4,0,0,0,0],"s":[5,1,4,5,6,2,5]},{"g":[0,0,0,0,4,0,4],"s":[7,1,3,1,4,1,4]},{"g":[0,4,0,0,4,0,0],"s":[3,4,5,1,4,1,3]}],"9":[{"g":[0,5,0,0,7,0,2,7,0],"s":[4,5,8,6,7,2,2,7,4]},{"g":[0,0,5,0,5,0,0,8,0],"s":[1,7,5,1,5,7,8,8,3]},{"g":[0,8,6,0,0,0,0,0,5],"s":[3,8,6,3,3,9,4,4,5]},{"g":[0,8,8,0,0,3,0,0,3],"s":[4,8,8,2,3,3,9,5,3]},{"g":[0,0,0,0,5,8,0,0,8],"s":[3,7,3,3,5,8,4,4,8]},{"g":[0,0,1,0,9,4,0,0,0],"s":[2,7,1,3,9,4,8,3,8]},{"g":[0,4,0,5,0,0,5,2,0],"s":[3,4,5,5,9,1,5,2,2]},{"g":[0,8,9,0,6,0,8,0,0],"s":[3,8,9,5,6,2,8,6,7]},{"g":[0,8,0,9,6,0,7,0,0],"s":[5,8,4,9,6,3,7,4,8]},{"g":[0,5,3,0,0,0,0,0,5],"s":[8,5,3,4,6,4,6,4,5]},{"g":[6,0,0,8,0,3,3,0,0],"s":[6,3,8,8,3,3,3,7,4]},{"g":[0,7,9,3,0,0,0,0,0],"s":[5,7,9,3,5,2,7,5,2]},{"g":[0,5,0,2,0,0,5,6,0],"s":[1,5,1,2,3,4,5,6,9]},{"g":[6,4,0,0,7,0,0,0,5],"s":[6,4,8,9,7,4,1,1,5]},{"g":[0,0,0,7,0,2,0,8,6],"s":[3,3,7,7,4,2,5,8,6]},{"g":[0,2,0,0,3,3,0,8,0],"s":[9,2,8,8,3,3,7,8,6]},{"g":[0,6,0,7,0,0,7,7,0],"s":[2,6,4,7,5,3,7,7,4]},{"g":[0,7,0,0,7,0,7,2,0],"s":[5,7,4,9,7,2,7,2,2]},{"g":[0,0,0,4,0,7,0,8,2],"s":[2,4,6,4,5,7,7,8,2]},{"g":[0,4,0,8,0,0,0,0,9],"s":[4,4,4,8,3,7,4,2,9]},{"g":[0,2,6,7,0,0,0,0,7],"s":[7,2,6,7,1,8,3,4,7]},{"g":[2,0,0,0,2,0,2,7,0],"s":[2,3,7,9,2,5,2,7,8]},{"g":[9,0,8,0,0,0,5,0,0],"s":[9,7,8,1,3,7,5,7,7]},{"g":[9,1,0,7,0,0,2,0,0],"s":[9,1,5,7,1,7,2,6,7]},{"g":[0,0,0,7,3,0,2,6,0],"s":[5,8,1,7,3,1,2,6,3]},{"g":[0,9,0,3,0,0,8,0,0],"s":[2,9,5,3,4,4,8,5,5]},{"g":[0,2,2,0,0,0,0,0,8],"s":[1,2,2,6,1,1,5,1,8]},{"g":[0,0,6,0,3,0,0,2,4],"s":[6,1,6,7,3,8,8,2,4]},{"g":[2,0,0,0,0,7,2,0,0],"s":[2,6,4,1,1,7,2,2,2]},{"g":[4,0,7,0,0,9,6,0,0],"s":[4,6,7,5,7,9,6,8,2]},{"g":[0,6,0,0,1,0,0,4,7],"s":[9,6,2,7,1,3,6,4,7]},{"g":[3,8,0,0,0,0,0,1,2],"s":[3,8,4,2,7,2,7,1,2]},{"g":[8,0,0,1,6,0,0,0,0],"s":[8,5,5,1,6,9,5,2,4]},{"g":[0,0,0,3,0,3,5,0,0],"s":[7,4,7,3,6,3,5,5,5]},{"g":[0,7,0,4,0,0,0,7,2],"s":[2,7,2,4,5,1,6,7,2]},{"g":[0,0,0,5,0,6,7,0,1],"s":[6,4,8,5,8,6,7,9,1]},{"g":[0,0,8,0,5,8,0,0,8],"s":[3,4,8,5,5,8,9,4,8]},{"g":[6,0,0,9,0,6,2,0,0],"s":[6,4,2,9,3,6,2,3,1]},{"g":[0,0,4,0,4,6,0,0,4],"s":[9,3,4,4,4,6,8,3,4]},{"g":[0,7,0,1,0,0,4,0,0],"s":[6,7,3,1,3,4,4,5,3]},{"g":[0,0,0,0,0,5,7,1,6],"s":[3,8,4,8,3,5,7,1,6]},{"g":[0,5,2,0,6,0,0,0,0],"s":[7,5,2,6,6,7,5,7,9]},{"g":[0,8,0,1,0,0,0,8,8],"s":[5,8,9,1,4,7,4,8,8]},{"g":[0,0,7,7,0,0,5,7,0],"s":[3,3,7,7,3,1,5,7,9]},{"g":[0,1,7,1,0,0,0,0,4],"s":[8,1,7,1,3,5,9,7,4]},{"g":[8,0,5,0,0,4,0,0,3],"s":[8,2,5,1,2,4,4,7,3]},{"g":[3,0,0,6,0,0,0,0,3],"s":[3,5,8,6,1,8,1,1,3]},{"g":[0,0,0,8,5,0,0,1,5],"s":[6,6,8,8,5,9,6,1,5]},{"g":[9,0,0,0,0,0,0,3,8],"s":[9,4,4,1,4,6,6,3,8]},{"g":[0,0,0,2,7,8,0,3,0],"s":[9,5,6,2,7,8,1,3,4]},{"g":[0,0,0,4,7,0,3,3,0],"s":[8,5,3,4,7,8,3,3,4]},{"g":[0,0,7,4,0,0,0,8,6],"s":[3,7,7,4,9,5,5,8,6]},{"g":[3,0,0,7,1,3,0,0,0],"s":[3,6,2,7,1,3,5,8,1]},{"g":[9,0,5,7,0,0,0,0,0],"s":[9,2,5,7,2,3,5,7,5]},{"g":[0,0,3,0,0,0,0,6,1],"s":[6,1,3,4,4,7,4,6,1]},{"g":[9,2,5,0,0,0,0,7,0],"s":[9,2,5,1,6,6,2,7,7]},{"g":[5,0,0,0,0,0,0,3,0],"s":[5,8,6,8,8,8,9,3,8]},{"g":[0,0,6,7,0,0,0,0,0],"s":[5,5,6,7,3,4,5,5,5]},{"g":[1,0,5,1,0,0,9,0,0],"s":[1,2,5,1,5,3,9,7,3]},{"g":[8,1,0,0,6,0,0,0,0],"s":[8,1,2,2,6,1,1,2,4]}]};
 var KEY = 'juggle1:';
 var store = {
@@ -285,7 +293,7 @@ function render() {
   var land = landings(n, S.placed), clash = land.some(function (c) { return c > 1; }), msg = document.getElementById('msg');
   msg.className = 'msg';
   if (clash) { msg.className = 'msg bad'; msg.textContent = 'Two arrows land on the same spot.'; }
-  else if (S.selTile) msg.innerHTML = 'Now tap an empty spot for the <b>&nbsp;' + S.selTile + '</b>.';
+  else if (S.selTile) msg.innerHTML = '<span>Now tap an empty spot for the <b>' + S.selTile + '</b>.</span>';
   else if (S.selSpot !== null) msg.textContent = 'Now tap a number to put on that spot.';
   else msg.textContent = 'Each number jumps that many spots clockwise. Land on every spot exactly once.';
   if (S.done) {
@@ -333,7 +341,7 @@ function dragPreview() {
   document.getElementById('board').innerHTML = drawBoard(S.n, tmp, p.g, {});
   var land = landings(S.n, tmp), msg = document.getElementById('msg');
   if (land.some(function (c) { return c > 1; })) { msg.className = 'msg bad'; msg.textContent = 'Two arrows would land on the same spot.'; }
-  else { msg.className = 'msg'; msg.innerHTML = DR.target >= 0 ? 'Let go to place the <b>&nbsp;' + DR.v + '</b>.' : (DR.src === 'spot' ? 'Drop it on a spot, or off the ring to take it back.' : 'Drag the <b>&nbsp;' + DR.v + '</b> onto an empty spot.'); }
+  else { msg.className = 'msg'; msg.innerHTML = '<span>' + (DR.target >= 0 ? 'Let go to place the <b>' + DR.v + '</b>.' : (DR.src === 'spot' ? 'Drop it on a spot, or off the ring to take it back.' : 'Drag the <b>' + DR.v + '</b> onto an empty spot.')) + '</span>'; }
 }
 function dragStart(e, src, v, from, el) {
   if (S.done || (e.pointerType === 'mouse' && e.button !== 0)) return;
@@ -430,7 +438,9 @@ function openHelp() {
   document.getElementById('help').classList.add('open');
 }
 document.getElementById('helpBtn').addEventListener('click', openHelp);
-document.getElementById('closeHelp').addEventListener('click', function () { document.getElementById('help').classList.remove('open'); store.set('seenHelp', 1); });
+function closeHelp() { document.getElementById('help').classList.remove('open'); store.set('seenHelp', 1); }
+document.getElementById('closeHelp').addEventListener('click', closeHelp);
+document.getElementById('xHelp').addEventListener('click', closeHelp);
 document.getElementById('erase').addEventListener('click', function () { store.clear(); document.getElementById('help').classList.remove('open'); load(5, 0); });
 (function () {
   var last = store.get('last');
