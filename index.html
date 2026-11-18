@@ -16,7 +16,7 @@
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body)}
 button{font-family:inherit;color:inherit;cursor:pointer}
 button:focus-visible,.spot:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
-#app{max-width:440px;margin:0 auto;padding:10px 16px 28px;display:flex;flex-direction:column;gap:12px}
+#app{max-width:440px;margin:0 auto;padding:10px 16px calc(96px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px}
 header{display:flex;align-items:center;justify-content:space-between;height:52px}
 h1{font-family:var(--display);font-weight:600;font-size:28px;margin:0;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
 h1 svg{width:34px;height:34px}
@@ -81,7 +81,7 @@ h1 svg{overflow:visible}
 <div class="sizes" role="group" aria-label="Puzzle size">
 <button data-n="5">Small</button><button data-n="7">Medium</button><button data-n="9">Large</button>
 </div>
-<svg id="board" viewBox="0 0 360 360" role="group" aria-label="Juggle board"></svg>
+<svg id="board" viewBox="0 8 360 322" role="group" aria-label="Juggle board"></svg>
 <div class="win" aria-live="polite"><p class="w1">Solved!!</p><p class="w2" id="winMsg"></p><p class="w3">Here it is in action.</p><svg id="juggler" viewBox="0 0 340 240" role="img" aria-label="Juggling animation of the solved pattern"></svg><div id="winSeq"></div></div>
 <div class="play">
 <div class="msg" id="msg"></div>
@@ -113,7 +113,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down their tricks. Each number is how many beats a ball stays in the air, and a trick only works if no two balls come down on the same beat. Every puzzle you solve here is a real juggling pattern.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 15</div>
+<div class="small">Version 16</div>
 </div>
 </div>
 <script>
