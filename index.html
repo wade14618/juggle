@@ -106,22 +106,22 @@ h1 svg{overflow:visible}
 <button class="x" id="xHelp" aria-label="Close"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 2L16 16M16 2L2 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></button>
 <h2>How to play</h2>
 <ol>
-<li>Every number is a <b>jump</b>. A 3 jumps three spots clockwise. Jumps wrap around the ring.</li>
+<li>Each number <b>tosses its ball</b> that many spots clockwise. A 3 tosses its ball three spots. Tosses wrap around the ring.</li>
 <li>Tap a number, then tap an empty spot to put it there, or drag the number onto the spot. A line shows where it lands.</li>
-<li>Fill the ring so that <b>every spot is landed on exactly once</b>.</li>
+<li>Fill the ring so that <b>no two balls land on the same spot</b>. Then you have a juggling trick that really works.</li>
 <li>Numbers with a ring around them are already set and cannot move.</li>
 </ol>
 <div id="helpPic"></div>
-<p>In the picture, the 2 at the top jumps two spots. Follow each arrow: no spot has two arrows coming in, and none is missed.</p>
+<p>In the picture, the 2 at the top tosses its ball two spots. Follow each arrow: every spot catches exactly one ball.</p>
 <h3>Controls</h3>
 <p>Tap a number you placed to take it back, or drag it to another spot. Drag it off the ring to take it back. <b>Hint</b> places one correct number. <b>Undo</b> takes back your last move. <b>Reset</b> clears your numbers.</p>
 <h3>Tips</h3>
-<p>A number as big as the ring jumps all the way round and lands on its own spot. If two arrows hit one spot, both turn white and dotted, and the spot gets a white ring.</p>
+<p>A number as big as the ring tosses its ball all the way round, back to its own spot. If two balls land on one spot, both arrows turn white and dotted, and the spot gets a white ring.</p>
 <h3>Why "Juggle"?</h3>
 <p>This is how jugglers write down their tricks. Each number is how many beats a ball stays in the air, and a trick only works if no two balls come down on the same beat. Every puzzle you solve here is a real juggling pattern.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 22</div>
+<div class="small">Version 23</div>
 </div>
 </div>
 <script>
@@ -197,7 +197,7 @@ function drawBoard(n, placed, givens, o) {
   for (i = 0; i < n; i++) {
     var val = placed[i], giv = !!givens[i], sel = o.selSpot === i;
     var missed = full && land[i] === 0 && !o.solved, hit2 = land[i] > 1 && !o.solved;
-    var label = 'Spot ' + (i + 1) + (val ? ', ' + val + (giv ? ', fixed' : '') : ', empty') + (hit2 ? ', two arrows land here' : '');
+    var label = 'Spot ' + (i + 1) + (val ? ', ' + val + (giv ? ', fixed' : '') : ', empty') + (hit2 ? ', two balls land here' : '');
     var X = f1(pts[i][0]), Y = f1(pts[i][1]);
     h += '<g class="spot" data-i="' + i + '" role="button" tabindex="0" aria-label="' + label + '">';
     if (hit2 || missed) h += '<circle cx="' + X + '" cy="' + Y + '" r="' + (r + 8) + '" fill="none" stroke="#FFFFFF" stroke-width="4"' + (missed ? ' stroke-dasharray="4 7"' : '') + '/>';
@@ -293,10 +293,10 @@ function render() {
   document.getElementById('rack').innerHTML = rh;
   var land = landings(n, S.placed), clash = land.some(function (c) { return c > 1; }), msg = document.getElementById('msg');
   msg.className = 'msg';
-  if (clash) { msg.className = 'msg bad'; msg.textContent = 'Two arrows land on the same spot.'; }
+  if (clash) { msg.className = 'msg bad'; msg.textContent = 'Two balls land on the same spot.'; }
   else if (S.selTile) msg.innerHTML = '<span>Now tap an empty spot for the <b>' + S.selTile + '</b>.</span>';
   else if (S.selSpot !== null) msg.textContent = 'Now tap a number to put on that spot.';
-  else msg.textContent = 'Each number jumps that many spots clockwise. Land on every spot exactly once.';
+  else msg.textContent = 'Each number tosses its ball that many spots clockwise. No two can land on the same spot.';
   if (S.done) {
     var sum = p.s.reduce(function (a, b) { return a + b; }, 0), balls = sum / n;
     document.getElementById('doneBig').textContent = 'Solved in ' + fmt(S.elapsed) + ' · ' + S.hints + (S.hints === 1 ? ' hint' : ' hints');
@@ -341,7 +341,7 @@ function dragPreview() {
   if (DR.target >= 0) tmp[DR.target] = DR.v;
   document.getElementById('board').innerHTML = drawBoard(S.n, tmp, p.g, {});
   var land = landings(S.n, tmp), msg = document.getElementById('msg');
-  if (land.some(function (c) { return c > 1; })) { msg.className = 'msg bad'; msg.textContent = 'Two arrows would land on the same spot.'; }
+  if (land.some(function (c) { return c > 1; })) { msg.className = 'msg bad'; msg.textContent = 'Two balls would land on the same spot.'; }
   else { msg.className = 'msg'; msg.innerHTML = '<span>' + (DR.target >= 0 ? 'Let go to place the <b>' + DR.v + '</b>.' : (DR.src === 'spot' ? 'Drop it on a spot, or off the ring to take it back.' : 'Drag the <b>' + DR.v + '</b> onto an empty spot.')) + '</span>'; }
 }
 function dragStart(e, src, v, from, el) {
