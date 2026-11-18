@@ -29,6 +29,9 @@ h1 svg{width:34px;height:34px}
 .sizes button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
 #board{width:100%;display:block;touch-action:manipulation}
 #board .spot{cursor:pointer}
+#board{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.ghost{position:fixed;left:0;top:0;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:29px;display:flex;align-items:center;justify-content:center;color:#23253D;font-family:var(--display);font-size:28px;font-weight:600;pointer-events:none;z-index:50;opacity:.95;box-shadow:0 0 0 3px var(--ink)}
+#rack button.lifted{opacity:.3}
 svg text{font-family:var(--display)}
 h1 svg{overflow:visible}
 .msg{min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:15px;line-height:20px;color:var(--mute)}
@@ -36,7 +39,7 @@ h1 svg{overflow:visible}
 .msg.bad{color:var(--warn);font-weight:600}
 .play{display:flex;flex-direction:column;gap:12px}
 #rack{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:60px;align-items:center}
-#rack button{width:54px;height:54px;border-radius:27px;border:0;color:#23253D;font-family:var(--display);font-size:26px;font-weight:700}
+#rack button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;width:54px;height:54px;border-radius:27px;border:0;color:#23253D;font-family:var(--display);font-size:26px;font-weight:700}
 #rack button.sel{outline:4px solid var(--ink);outline-offset:3px;transform:translateY(-5px)}
 .racklabel{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);text-align:center}
 .ctl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -99,21 +102,21 @@ h1 svg{overflow:visible}
 <h2>How to play</h2>
 <ol>
 <li>Every number is a <b>jump</b>. A 3 jumps three spots clockwise. Jumps wrap around the ring.</li>
-<li>Tap a number, then tap an empty spot to put it there. A line shows where it lands.</li>
+<li>Tap a number, then tap an empty spot to put it there, or drag the number onto the spot. A line shows where it lands.</li>
 <li>Fill the ring so that <b>every spot is landed on exactly once</b>.</li>
 <li>Numbers with a ring around them are already set and cannot move.</li>
 </ol>
 <div id="helpPic"></div>
 <p>In the picture, the 2 at the top jumps two spots. Follow each arrow: no spot has two arrows coming in, and none is missed.</p>
 <h3>Controls</h3>
-<p>Tap a number you placed to take it back. <b>Hint</b> places one correct number. <b>Undo</b> takes back your last move. <b>Reset</b> clears your numbers.</p>
+<p>Tap a number you placed to take it back, or drag it to another spot. Drag it off the ring to take it back. <b>Hint</b> places one correct number. <b>Undo</b> takes back your last move. <b>Reset</b> clears your numbers.</p>
 <h3>Tips</h3>
 <p>A number as big as the ring jumps all the way round and lands on its own spot. If two arrows hit one spot, both turn white and dotted, and the spot gets a white ring.</p>
 <h3>Why "Juggle"?</h3>
 <p>This is how jugglers write down their tricks. Each number is how many beats a ball stays in the air, and a trick only works if no two balls come down on the same beat. Every puzzle you solve here is a real juggling pattern.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 16</div>
+<div class="small">Version 17</div>
 </div>
 </div>
 <script>
@@ -304,6 +307,78 @@ function tapTile(v) {
   if (S.selSpot !== null) { place(S.selSpot, v); return; }
   S.selTile = S.selTile === v ? null : v; render();
 }
+
+/* Drag and drop: a second way to place, alongside tapping. */
+var DR = { on: false, pend: false, src: null, v: 0, x0: 0, y0: 0, ghost: null, target: -1, skipClick: false, pid: null };
+var LIFT = 56;
+function spotPts(n) { var a = [], i; for (i = 0; i < n; i++) { var g = -Math.PI / 2 + i * 2 * Math.PI / n; a.push([180 + 130 * Math.cos(g), 180 + 130 * Math.sin(g)]); } return a; }
+function toBoard(x, y) {
+  var svg = document.getElementById('board'), m = svg.getScreenCTM(); if (!m) return null;
+  var pt = svg.createSVGPoint(); pt.x = x; pt.y = y; return pt.matrixTransform(m.inverse());
+}
+function dragTarget(x, y) {
+  var p = puzzle(), n = S.n, b = toBoard(x, y); if (!b) return -1;
+  var r = n === 5 ? 31 : n === 7 ? 27 : 24, pts = spotPts(n), best = -1, bd = r * 1.9, i;
+  for (i = 0; i < n; i++) {
+    var free = !S.placed[i] || (DR.src === 'spot' && DR.from === i);
+    if (!free || p.g[i]) continue;
+    var d = Math.hypot(b.x - pts[i][0], b.y - pts[i][1]); if (d < bd) { bd = d; best = i; }
+  }
+  return best;
+}
+function dragPreview() {
+  var p = puzzle(), tmp = S.placed.slice();
+  if (DR.src === 'spot') tmp[DR.from] = 0;
+  if (DR.target >= 0) tmp[DR.target] = DR.v;
+  document.getElementById('board').innerHTML = drawBoard(S.n, tmp, p.g, {});
+  var land = landings(S.n, tmp), msg = document.getElementById('msg');
+  if (land.some(function (c) { return c > 1; })) { msg.className = 'msg bad'; msg.textContent = 'Two arrows would land on the same spot.'; }
+  else { msg.className = 'msg'; msg.innerHTML = DR.target >= 0 ? 'Let go to place the <b>&nbsp;' + DR.v + '</b>.' : (DR.src === 'spot' ? 'Drop it on a spot, or off the ring to take it back.' : 'Drag the <b>&nbsp;' + DR.v + '</b> onto an empty spot.'); }
+}
+function dragStart(e, src, v, from, el) {
+  if (S.done || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  DR.pend = true; DR.on = false; DR.src = src; DR.v = v; DR.from = from; DR.el = el; DR.x0 = e.clientX; DR.y0 = e.clientY; DR.target = -1; DR.pid = e.pointerId;
+}
+function dragMove(e) {
+  if (!DR.pend || e.pointerId !== DR.pid) return;
+  var x = e.clientX, y = e.clientY;
+  if (!DR.on) {
+    if (Math.hypot(x - DR.x0, y - DR.y0) < 8) return;
+    DR.on = true; S.selTile = null; S.selSpot = null; touch();
+    var g = document.createElement('div'); g.className = 'ghost'; g.style.background = COL[DR.v]; g.textContent = DR.v; document.body.appendChild(g); DR.ghost = g;
+    if (DR.src === 'rack' && DR.el) DR.el.classList.add('lifted');
+  }
+  e.preventDefault();
+  var gy = y - LIFT;
+  DR.ghost.style.transform = 'translate(' + x + 'px,' + gy + 'px)';
+  var t = dragTarget(x, gy); if (t !== DR.target || !DR.drawn) { DR.target = t; DR.drawn = true; dragPreview(); }
+}
+function dragEnd(e, cancel) {
+  if (!DR.pend || (e && e.pointerId !== DR.pid)) return;
+  var was = DR.on; DR.pend = false; DR.on = false; DR.drawn = false;
+  if (DR.ghost) { DR.ghost.remove(); DR.ghost = null; }
+  if (DR.el) DR.el.classList.remove('lifted');
+  if (!was) return;
+  DR.skipClick = true; setTimeout(function () { DR.skipClick = false; }, 120);
+  if (!cancel && DR.target >= 0) {
+    if (DR.src === 'rack') { place(DR.target, DR.v); return; }
+    if (DR.target !== DR.from) { S.hist.push(S.placed.slice()); S.placed[DR.from] = 0; S.placed[DR.target] = DR.v; after(); return; }
+  } else if (!cancel && DR.src === 'spot') { S.hist.push(S.placed.slice()); S.placed[DR.from] = 0; after(); return; }
+  render();
+}
+document.getElementById('rack').addEventListener('pointerdown', function (e) {
+  var b = e.target.closest ? e.target.closest('button') : null; if (b) dragStart(e, 'rack', Number(b.dataset.v), -1, b);
+});
+document.getElementById('board').addEventListener('pointerdown', function (e) {
+  var g = e.target.closest ? e.target.closest('.spot') : null; if (!g) return;
+  var i = Number(g.dataset.i), p = puzzle(); if (!S.placed[i] || p.g[i]) return;
+  dragStart(e, 'spot', S.placed[i], i, null);
+});
+window.addEventListener('pointermove', dragMove, { passive: false });
+window.addEventListener('pointerup', function (e) { dragEnd(e, false); });
+window.addEventListener('pointercancel', function (e) { dragEnd(e, true); });
+document.addEventListener('touchmove', function (e) { if (DR.pend) e.preventDefault(); }, { passive: false });
+document.addEventListener('click', function (e) { if (DR.skipClick) { e.stopPropagation(); e.preventDefault(); DR.skipClick = false; } }, true);
 document.getElementById('board').addEventListener('click', function (e) {
   var g = e.target.closest ? e.target.closest('.spot') : null; if (g) tapSpot(Number(g.dataset.i));
 });
