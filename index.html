@@ -116,7 +116,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down their tricks. Each number is how many beats a ball stays in the air, and a trick only works if no two balls come down on the same beat. Every puzzle you solve here is a real juggling pattern.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 17</div>
+<div class="small">Version 18</div>
 </div>
 </div>
 <script>
@@ -285,7 +285,7 @@ function render() {
   var land = landings(n, S.placed), clash = land.some(function (c) { return c > 1; }), msg = document.getElementById('msg');
   msg.className = 'msg';
   if (clash) { msg.className = 'msg bad'; msg.textContent = 'Two arrows land on the same spot.'; }
-  else if (S.selTile) msg.innerHTML = 'Now tap an empty spot for the <b>&nbsp;' + S.selTile + '</b>.';
+  else if (S.selTile) msg.innerHTML = '<span>Now tap an empty spot for the <b>' + S.selTile + '</b>.</span>';
   else if (S.selSpot !== null) msg.textContent = 'Now tap a number to put on that spot.';
   else msg.textContent = 'Each number jumps that many spots clockwise. Land on every spot exactly once.';
   if (S.done) {
@@ -333,7 +333,7 @@ function dragPreview() {
   document.getElementById('board').innerHTML = drawBoard(S.n, tmp, p.g, {});
   var land = landings(S.n, tmp), msg = document.getElementById('msg');
   if (land.some(function (c) { return c > 1; })) { msg.className = 'msg bad'; msg.textContent = 'Two arrows would land on the same spot.'; }
-  else { msg.className = 'msg'; msg.innerHTML = DR.target >= 0 ? 'Let go to place the <b>&nbsp;' + DR.v + '</b>.' : (DR.src === 'spot' ? 'Drop it on a spot, or off the ring to take it back.' : 'Drag the <b>&nbsp;' + DR.v + '</b> onto an empty spot.'); }
+  else { msg.className = 'msg'; msg.innerHTML = '<span>' + (DR.target >= 0 ? 'Let go to place the <b>' + DR.v + '</b>.' : (DR.src === 'spot' ? 'Drop it on a spot, or off the ring to take it back.' : 'Drag the <b>' + DR.v + '</b> onto an empty spot.')) + '</span>'; }
 }
 function dragStart(e, src, v, from, el) {
   if (S.done || (e.pointerType === 'mouse' && e.button !== 0)) return;
