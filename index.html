@@ -63,8 +63,9 @@ h1 svg{overflow:visible}
 .solved .play{display:none}
 #help{position:fixed;inset:0;background:rgba(20,22,40,.55);display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:16px}
 #help.open{display:flex}
-#help .sheet{background:var(--panel);border-radius:20px;max-width:420px;width:100%;padding:18px 18px 22px}
-#help h2{font-family:var(--display);margin:0 0 6px;font-size:24px}
+#help .sheet{position:relative;background:var(--panel);border-radius:20px;max-width:420px;width:100%;padding:18px 18px 22px}
+#help h2{font-family:var(--display);margin:0 0 6px;font-size:24px;padding-right:48px}
+#help .x{position:absolute;top:8px;right:8px;width:44px;height:44px;border:0;border-radius:22px;background:transparent;color:var(--ink);font-size:30px;line-height:44px;padding:0}
 #help h3{font-family:var(--display);margin:16px 0 4px;font-size:17px}
 #help p,#help li{font-size:15px;line-height:22px;margin:4px 0;color:var(--ink)}
 #help ol{padding-left:22px;margin:6px 0}
@@ -99,6 +100,7 @@ h1 svg{overflow:visible}
 </div>
 <div id="help" role="dialog" aria-modal="true" aria-label="How to play">
 <div class="sheet">
+<button class="x" id="xHelp" aria-label="Close">&#215;</button>
 <h2>How to play</h2>
 <ol>
 <li>Every number is a <b>jump</b>. A 3 jumps three spots clockwise. Jumps wrap around the ring.</li>
@@ -116,7 +118,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down their tricks. Each number is how many beats a ball stays in the air, and a trick only works if no two balls come down on the same beat. Every puzzle you solve here is a real juggling pattern.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 18</div>
+<div class="small">Version 19</div>
 </div>
 </div>
 <script>
@@ -430,7 +432,9 @@ function openHelp() {
   document.getElementById('help').classList.add('open');
 }
 document.getElementById('helpBtn').addEventListener('click', openHelp);
-document.getElementById('closeHelp').addEventListener('click', function () { document.getElementById('help').classList.remove('open'); store.set('seenHelp', 1); });
+function closeHelp() { document.getElementById('help').classList.remove('open'); store.set('seenHelp', 1); }
+document.getElementById('closeHelp').addEventListener('click', closeHelp);
+document.getElementById('xHelp').addEventListener('click', closeHelp);
 document.getElementById('erase').addEventListener('click', function () { store.clear(); document.getElementById('help').classList.remove('open'); load(5, 0); });
 (function () {
   var last = store.get('last');
