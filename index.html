@@ -121,7 +121,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down their tricks. Each number is how many beats a ball stays in the air, and a trick only works if no two balls come down on the same beat. Every puzzle you solve here is a real juggling pattern.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 24</div>
+<div class="small">Version 25</div>
 </div>
 </div>
 <script>
@@ -296,7 +296,7 @@ function render() {
   if (clash) { msg.className = 'msg bad'; msg.textContent = 'Two balls land on the same spot.'; }
   else if (S.selTile) msg.innerHTML = '<span>Now tap an empty spot for the <b>' + S.selTile + '</b>.</span>';
   else if (S.selSpot !== null) msg.textContent = 'Now tap a number to put on that spot.';
-  else msg.textContent = 'Each number tosses its ball that many spots clockwise. No two balls should land on the same spot.';
+  else msg.innerHTML = '<span>Each number tosses its ball that many spots clockwise.<br>No two balls should land on the same spot.</span>';
   if (S.done) {
     var sum = p.s.reduce(function (a, b) { return a + b; }, 0), balls = sum / n;
     document.getElementById('doneBig').textContent = 'Solved in ' + fmt(S.elapsed) + ' · ' + S.hints + (S.hints === 1 ? ' hint' : ' hints');
