@@ -121,7 +121,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down their tricks. Each number is how many beats a ball stays in the air, and a trick only works if no two balls come down on the same beat. Every puzzle you solve here is a real juggling pattern.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 26</div>
+<div class="small">Version 27</div>
 </div>
 </div>
 <script>
@@ -399,7 +399,7 @@ window.addEventListener('pointercancel', function (e) { dragEnd(e, true); });
   var el = document.getElementById(id);
   el.addEventListener('pointerup', function (e) { dragEnd(e, false); });
   el.addEventListener('pointercancel', function (e) { dragEnd(e, true); });
-  el.addEventListener('lostpointercapture', function (e) { if (DR.pend && e.pointerId === DR.pid) dragEnd(null, !DR.on); });
+  el.addEventListener('lostpointercapture', function (e) { if (e.target === el && DR.pend && DR.on && e.pointerId === DR.pid) dragEnd(null, false); });
 });
 window.addEventListener('touchend', function () { if (DR.pend) dragEnd(null, false); });
 window.addEventListener('touchcancel', function () { if (DR.pend) dragEnd(null, true); });
