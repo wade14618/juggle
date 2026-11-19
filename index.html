@@ -14,8 +14,8 @@
 /* Layout idea: one dusky stage, a ring of spots, every number a colored ball. Single theme by choice. */
 :root{color-scheme:dark;--bg:#2E3150;--panel:#393D61;--ink:#F4F1E8;--mute:#C6C4DA;--edge:#6A6E98;--sun:#F2CD5C;--warn:#FFC2AE;--display:"Fredoka","Trebuchet MS",system-ui,sans-serif;--body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body)}
-button{font-family:inherit;color:inherit;cursor:pointer}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);touch-action:manipulation}
+button{font-family:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
 button:focus-visible,.spot:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
 #app{max-width:440px;margin:0 auto;padding:10px 16px calc(96px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px}
 html.homescreen .play{gap:16px}
@@ -130,7 +130,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down tricks. Every puzzle you solve is a real juggling pattern, and you'll see it juggled when you win.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 50</div>
+<div class="small">Version 51</div>
 </div>
 </div>
 <script>
@@ -447,6 +447,7 @@ window.addEventListener('touchcancel', function () { if (DR.pend) dragEnd(null, 
 window.addEventListener('blur', function () { if (DR.pend) dragEnd(null, true); });
 document.addEventListener('visibilitychange', function () { if (DR.pend) dragEnd(null, true); });
 document.addEventListener('touchmove', function (e) { if (DR.pend) e.preventDefault(); }, { passive: false });
+document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
 document.addEventListener('click', function (e) { if (DR.skipClick) { e.stopPropagation(); e.preventDefault(); DR.skipClick = false; } }, true);
 document.getElementById('board').addEventListener('click', function (e) {
   var g = e.target.closest ? e.target.closest('.spot') : null; if (g) tapSpot(Number(g.dataset.i));
