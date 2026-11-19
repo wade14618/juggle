@@ -130,7 +130,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down tricks. Every puzzle you solve is a real juggling pattern, and you'll see it juggled when you win.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 52</div>
+<div class="small">Version 53</div>
 </div>
 </div>
 <script>
@@ -172,7 +172,7 @@ function drawBoard(n, placed, givens, o) {
   var h = '<defs>';
   for (i = 1; i <= 9; i++) h += '<marker id="m' + i + sfx + '" viewBox="0 0 10 10" refX="7.5" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="' + COL[i] + '"/></marker>';
   h += '<marker id="mx' + sfx + '" viewBox="0 0 10 10" refX="7.5" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#FFFFFF"/></marker></defs>';
-  h += '<circle cx="180" cy="180" r="' + R + '" fill="none" stroke="#7176A6" stroke-width="3.2" stroke-dasharray="0.1 8" stroke-linecap="round"/>';
+  h += '<circle cx="180" cy="180" r="' + R + '" fill="none" stroke="#666A9A" stroke-width="2.9" stroke-dasharray="0.1 8" stroke-linecap="round"/>';
   var arcs = '';
   for (i = 0; i < n; i++) {
     var v = placed[i]; if (!v) continue;
