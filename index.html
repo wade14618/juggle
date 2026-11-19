@@ -27,7 +27,6 @@ h1 svg{width:34px;height:34px}
 .nav button{width:44px;height:44px;border:0;background:transparent;font-size:26px;color:var(--ink)}
 .nav button:disabled{color:#555A85}
 .round{width:44px;height:44px;border-radius:22px;border:1.5px solid var(--edge);background:var(--panel);font-family:var(--display);font-size:20px;font-weight:600}
-.round.glow{background:var(--sun);border-color:var(--sun);color:#23253D}
 .sizes{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--panel);border-radius:26px;padding:4px}
 .sizes button{height:44px;border:0;border-radius:22px;background:transparent;font-family:var(--display);font-size:16px;font-weight:600;color:var(--mute)}
 .sizes button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
@@ -113,7 +112,7 @@ h1 svg{overflow:visible}
 <p>The ring is a juggler's clock. Each spot is one beat of time, counting counterclockwise and repeating.</p>
 <p>Placing a number on a spot means you toss a ball on that beat. The ball stays in the air for that number of beats, and its arrow points to the beat it lands on.</p>
 <div id="helpPic"></div>
-<p class="cap">The 2 at the top stays up for two beats. Every beat catches one ball.</p>
+<p class="cap">The 2 at the top stays up for two beats.<br>Every beat catches one ball.</p>
 <h3>Rules</h3>
 <ul>
 <li>Place one number on every spot.</li>
@@ -131,7 +130,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down tricks. Every puzzle you solve is a real juggling pattern, and you'll see it juggled when you win.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 42</div>
+<div class="small">Version 43</div>
 </div>
 </div>
 <script>
@@ -470,7 +469,7 @@ function openHelp() {
   document.getElementById('helpPic').innerHTML = '<svg viewBox="0 0 360 360" role="img" aria-label="A solved ring of five spots holding 2, 4, 4, 1, 4">' + drawBoard(5, [2, 4, 4, 1, 4], [0, 0, 0, 1, 0], { id: 'h' }) + '</svg>';
   document.getElementById('help').classList.add('open');
   document.getElementById('help').scrollTop = 0;
-  document.getElementById('helpBtn').classList.remove('glow'); store.set('seenHelp', 1);
+  store.set('seenHelp', 1);
 }
 document.getElementById('helpBtn').addEventListener('click', openHelp);
 function closeHelp() { document.getElementById('help').classList.remove('open'); store.set('seenHelp', 1); }
@@ -480,12 +479,12 @@ var eraseArmed = false;
 function disarmErase() { eraseArmed = false; var b = document.getElementById('erase'); b.textContent = 'Erase my progress'; b.classList.remove('armed'); }
 document.getElementById('erase').addEventListener('click', function () {
   if (!eraseArmed) { eraseArmed = true; this.textContent = 'Tap again to erase everything'; this.classList.add('armed'); return; }
-  disarmErase(); store.clear(); document.getElementById('help').classList.remove('open'); load(5, 0); document.getElementById('helpBtn').classList.add('glow');
+  disarmErase(); store.clear(); document.getElementById('help').classList.remove('open'); load(5, 0);
 });
 (function () {
   var last = store.get('last');
   if (last && BANK[last.n] && last.idx < BANK[last.n].length) load(last.n, last.idx); else load(5, 0);
-  if (!store.get('seenHelp')) document.getElementById('helpBtn').classList.add('glow');
+  if (!store.get('seenHelp')) openHelp();
 })();
 (function () {
   var P = [[17, 4.5], [28.9, 13.1], [24.3, 27.1], [9.7, 27.1], [5.1, 13.1]], el = document.querySelectorAll('h1 .lb'), at = [0, 1, 2, 3, 4];
