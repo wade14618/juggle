@@ -26,6 +26,7 @@ h1 svg{width:34px;height:34px}
 .nav{display:flex;align-items:center;gap:0;font-size:14px;font-weight:500;color:var(--mute)}
 .nav button{width:44px;height:44px;border:0;background:transparent;font-size:26px;color:var(--ink)}
 .nav button:disabled{color:#555A85}
+.ctl button:disabled{opacity:.4}
 .round{width:44px;height:44px;border-radius:22px;border:1.5px solid var(--edge);background:var(--panel);font-family:var(--display);font-size:20px;font-weight:600}
 .sizes{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--panel);border-radius:26px;padding:4px}
 .sizes button{height:44px;border:0;border-radius:22px;background:transparent;font-family:var(--display);font-size:16px;font-weight:600;color:var(--mute)}
@@ -59,7 +60,10 @@ h1 svg{overflow:visible}
 .win .w1{font-family:var(--display);font-size:30px;font-weight:600;color:var(--sun);margin:18px 0 0}
 .win .w2{font-family:var(--display);font-size:19px;font-weight:500;margin:4px 0 2px}
 .win .w3{font-size:15px;color:var(--mute);margin:0}
-#juggler{width:100%;display:block;margin:4px 0 24px}
+#juggler{width:100%;display:block;margin:4px 0 26px}
+.tip{max-width:300px;margin:0 auto 24px;background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:10px 14px;text-align:center}
+.tip .tl{font-size:12px;color:var(--sun);margin:0 0 3px;letter-spacing:.3px}
+.tip .tt{font-size:14px;line-height:1.45;margin:0}
 #winSeq{display:none}
 #winSeq b{width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:15px;font-weight:600;color:#23253D;opacity:.45}
 #winSeq b.on{opacity:1;outline:2px solid var(--ink);outline-offset:2px}
@@ -92,7 +96,7 @@ h1 svg{overflow:visible}
 <button data-n="5">Small</button><button data-n="7">Medium</button><button data-n="9">Large</button>
 </div>
 <svg id="board" viewBox="0 0 360 340" role="group" aria-label="Juggle board"></svg>
-<div class="win" aria-live="polite"><p class="w1">Solved!!</p><p class="w2" id="winMsg"></p><p class="w3">Here it is in action.</p><svg id="juggler" viewBox="0 0 340 250" role="img" aria-label="Juggling animation of the solved pattern"></svg><div id="winSeq"></div></div>
+<div class="win" aria-live="polite"><p class="w1">Solved!!</p><p class="w2" id="winMsg"></p><p class="w3">Here it is in action.</p><svg id="juggler" viewBox="0 0 340 250" role="img" aria-label="Juggling animation of the solved pattern"></svg><div id="winSeq"></div><div class="tip"><p class="tt" id="tipText"></p></div></div>
 <div class="play">
 <div class="msg" id="msg"></div>
 <div class="racklabel">Numbers to place</div>
@@ -130,7 +134,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down tricks. Every puzzle you solve is a real juggling pattern, and you'll see it juggled when you win.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 51</div>
+<div class="small">Version 58</div>
 </div>
 </div>
 <script>
@@ -172,7 +176,7 @@ function drawBoard(n, placed, givens, o) {
   var h = '<defs>';
   for (i = 1; i <= 9; i++) h += '<marker id="m' + i + sfx + '" viewBox="0 0 10 10" refX="7.5" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="' + COL[i] + '"/></marker>';
   h += '<marker id="mx' + sfx + '" viewBox="0 0 10 10" refX="7.5" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#FFFFFF"/></marker></defs>';
-  h += '<circle cx="180" cy="180" r="' + R + '" fill="none" stroke="#4D5180" stroke-width="2" stroke-dasharray="1 8" stroke-linecap="round"/>';
+  h += '<circle cx="180" cy="180" r="' + R + '" fill="none" stroke="#666A9A" stroke-width="2.9" stroke-dasharray="0.1 8" stroke-linecap="round"/>';
   var arcs = '';
   for (i = 0; i < n; i++) {
     var v = placed[i]; if (!v) continue;
@@ -215,11 +219,20 @@ function drawBoard(n, placed, givens, o) {
       h += '<circle cx="' + X + '" cy="' + Y + '" r="' + r + '" fill="' + COL[val] + '"/>';
       h += '<text x="' + X + '" y="' + f1(pts[i][1] + r * 0.36) + '" text-anchor="middle" font-size="' + (r * 1.05).toFixed(0) + '" font-weight="600" fill="#23253D">' + val + '</text>';
     } else {
-      h += '<circle cx="' + X + '" cy="' + Y + '" r="' + r + '" fill="' + (sel ? '#454A7A' : '#353959') + '" stroke="' + (sel ? '#F4F1E8' : '#9A9CC0') + '" stroke-width="' + (sel ? 4 : 2) + '"' + (sel ? '' : ' stroke-dasharray="5 6"') + '/>';
+      h += '<circle cx="' + X + '" cy="' + Y + '" r="' + r + '" fill="' + (sel ? '#454A7A' : '#353959') + '" stroke="' + (sel ? '#F4F1E8' : '#DCDDF0') + '" stroke-width="' + (sel ? 4 : 2) + '"' + (sel ? '' : ' stroke-dasharray="5 6"') + '/>';
     }
     h += '</g>';
   }
   return h;
+}
+function tipFor(seq, n, idx) {
+  var sum = seq.reduce(function (a, b) { return a + b; }, 0);
+  var T = ['Odd numbers switch hands. Even numbers come back to the same hand.',
+    'Add the numbers and divide by the spots. Here that\u2019s ' + sum + ' \u00F7 ' + n + ' = ' + (sum / n) + ' balls.',
+    'A 2 is just holding the ball. A 1 is a quick hand-off straight across.',
+    'Bigger numbers mean higher throws. A 5 flies much higher than a 3.',
+    'Jugglers write patterns as numbers like these. They call it siteswap.'];
+  return T[(idx + n) % T.length];
 }
 var WINMSG = { 2: 'Two balls. A gentle warm-up.', 3: 'A classic three-ball trick.', 4: 'Four balls in the air!', 5: 'Five balls. Circus-ready.', 6: 'Six balls! That takes a pro.', 7: 'Seven balls! World-class.' };
 var JG = { key: null, raf: 0 };
@@ -321,6 +334,8 @@ function render() {
   document.getElementById('num').textContent = 'No. ' + (S.idx + 1) + ' of ' + total;
   document.getElementById('prev').disabled = S.idx === 0;
   document.getElementById('next').disabled = S.idx === total - 1;
+  document.getElementById('undo').disabled = !S.hist.length;
+  var pg = puzzle().g; document.getElementById('reset').disabled = !S.placed.some(function (v, i) { return v !== pg[i]; });
   Array.prototype.forEach.call(document.querySelectorAll('.sizes button'), function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.n) === n)); });
   document.getElementById('board').innerHTML = drawBoard(n, S.placed, p.g, { selSpot: S.selSpot, solved: S.done, balls: p.s.reduce(function (a, b) { return a + b; }, 0) / n });
   document.getElementById('app').classList.toggle('solved', S.done);
@@ -342,6 +357,7 @@ function render() {
     var sum = p.s.reduce(function (a, b) { return a + b; }, 0), balls = sum / n;
     document.getElementById('doneBig').textContent = 'Solved in ' + fmt(S.elapsed) + ' · ' + S.hints + (S.hints === 1 ? ' hint' : ' hints');
     document.getElementById('winMsg').textContent = WINMSG[balls] || (balls + ' balls in the air!');
+    document.getElementById('tipText').textContent = tipFor(p.s, n, S.idx);
     startJuggle(p.s, n + ':' + S.idx);
     document.getElementById('nextBtn').style.visibility = S.idx === total - 1 ? 'hidden' : 'visible';
   }
