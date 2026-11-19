@@ -71,14 +71,15 @@ h1 svg{overflow:visible}
 #help h2{font-family:var(--display);margin:0 0 16px;font-size:24px;padding-right:48px}
 #help .x{position:absolute;top:10px;right:10px;width:44px;height:44px;border:1.5px solid var(--edge);border-radius:22px;background:#474B78;color:var(--ink);padding:0;display:flex;align-items:center;justify-content:center}
 #help .x svg{width:18px;height:18px;margin:0;background:none;border-radius:0}
-#help h3{font-family:var(--display);margin:16px 0 4px;font-size:17px}
+#help h3{font-family:var(--display);margin:16px 0 4px;font-size:17px;color:var(--sun)}
 #help p,#help li{font-size:15px;line-height:22px;margin:4px 0;color:var(--ink)}
-#help ol{padding-left:22px;margin:6px 0}
-#help svg{width:74%;display:block;margin:8px auto;background:var(--bg);border-radius:16px}
-#help .close{width:100%;height:48px;border-radius:24px;border:0;background:var(--sun);color:#23253D;font-family:var(--display);font-size:16px;font-weight:600;margin-top:14px}
+#help ul{padding-left:22px;margin:6px 0}
+#help .cap{font-size:13px;line-height:19px;color:var(--mute);text-align:center}
+#help svg{width:74%;display:block;margin:18px auto 6px;background:var(--bg);border-radius:16px}
+#help .close{width:100%;height:48px;border-radius:24px;border:0;background:var(--sun);color:#23253D;font-family:var(--display);font-size:16px;font-weight:600;margin-top:30px}
 #help .small{font-size:13px;color:var(--mute);text-align:center;margin-top:12px}
 #help .erase.armed{border-color:var(--warn);color:var(--warn)}
-#help .erase{background:transparent;border:1.5px solid var(--edge);color:var(--ink);height:44px;border-radius:22px;width:100%;font-size:14px;font-weight:600;margin-top:10px}
+#help .erase{background:transparent;border:1.5px solid var(--edge);color:var(--ink);height:44px;border-radius:22px;width:100%;font-size:14px;font-weight:600;margin-top:16px}
 </style>
 </head>
 <body>
@@ -108,25 +109,29 @@ h1 svg{overflow:visible}
 <div class="sheet">
 <button class="x" id="xHelp" aria-label="Close"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 2L16 16M16 2L2 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></button>
 <h2>How to play</h2>
-<ol>
-<li>Each number <b>tosses its ball</b> that many spots counterclockwise. A 3 tosses its ball three spots. Tosses wrap around the ring.</li>
-<li>Tap a number, then tap an empty spot to put it there, or drag the number onto the spot. A line shows where it lands.</li>
-<li>Fill the ring so that <b>no two balls land on the same spot</b>. Then you have a juggling trick that really works.</li>
-<li>Numbers with a ring around them are already set and cannot move.</li>
-</ol>
+<h3>Concept</h3>
+<p>The ring is a juggler's clock. Each spot is one beat of time, counting counterclockwise and repeating.</p>
+<p>Placing a number on a spot means you toss a ball on that beat. The ball stays in the air for that number of beats, and its arrow points to the beat it lands on.</p>
 <div id="helpPic"></div>
-<p>In the picture, the 2 at the top tosses its ball two spots. Follow each arrow: every spot catches exactly one ball.</p>
+<p class="cap">The 2 at the top stays up for two beats. Every beat catches one ball.</p>
+<h3>Rules</h3>
+<ul>
+<li>Place one number on every spot.</li>
+<li>Each ball must come down on a beat of its own. Two arrows into one spot means two balls land together, and one is dropped.</li>
+<li>Ringed numbers are fixed.</li>
+</ul>
 <h3>Controls</h3>
-<p>Tap a number you placed to take it back, or drag it to another spot. Drag it off the ring to take it back. <b>Hint</b> places one correct number. <b>Undo</b> takes back your last move. <b>Reset</b> clears your numbers.</p>
-<h3>Tips</h3>
-<p>A number as big as the ring tosses its ball all the way round, back to its own spot. If two balls land on one spot, both arrows turn white and dotted, and the spot gets a white ring.</p>
+<ul>
+<li>Drag a number onto a spot, or tap the number, then the spot.</li>
+<li>Drag a placed number to another spot to move it.</li>
+<li>Tap a placed number, or drag it off the ring, to remove it.</li>
+<li><b>Hint</b> places one correct number.</li>
+</ul>
 <h3>Why "Juggle"?</h3>
-<p>This is how jugglers write down their tricks. Each number is how many beats a ball stays in the air, and a trick only works if no two balls come down on the same beat. Every puzzle you solve here is a real juggling pattern.</p>
-<h3>Getting started</h3>
-<p>Start with Small. Tap or drag any number onto an empty spot and watch where its arrow lands. If you get stuck, <b>Hint</b> places one number for you.</p>
+<p>This is how jugglers write down tricks. Every puzzle you solve is a real juggling pattern, and you'll see it juggled when you win.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 41</div>
+<div class="small">Version 42</div>
 </div>
 </div>
 <script>
