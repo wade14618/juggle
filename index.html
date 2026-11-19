@@ -26,6 +26,7 @@ h1 svg{width:34px;height:34px}
 .nav{display:flex;align-items:center;gap:0;font-size:14px;font-weight:500;color:var(--mute)}
 .nav button{width:44px;height:44px;border:0;background:transparent;font-size:26px;color:var(--ink)}
 .nav button:disabled{color:#555A85}
+.ctl button:disabled{opacity:.4}
 .round{width:44px;height:44px;border-radius:22px;border:1.5px solid var(--edge);background:var(--panel);font-family:var(--display);font-size:20px;font-weight:600}
 .sizes{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--panel);border-radius:26px;padding:4px}
 .sizes button{height:44px;border:0;border-radius:22px;background:transparent;font-family:var(--display);font-size:16px;font-weight:600;color:var(--mute)}
@@ -133,7 +134,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down tricks. Every puzzle you solve is a real juggling pattern, and you'll see it juggled when you win.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 57</div>
+<div class="small">Version 58</div>
 </div>
 </div>
 <script>
@@ -333,6 +334,8 @@ function render() {
   document.getElementById('num').textContent = 'No. ' + (S.idx + 1) + ' of ' + total;
   document.getElementById('prev').disabled = S.idx === 0;
   document.getElementById('next').disabled = S.idx === total - 1;
+  document.getElementById('undo').disabled = !S.hist.length;
+  var pg = puzzle().g; document.getElementById('reset').disabled = !S.placed.some(function (v, i) { return v !== pg[i]; });
   Array.prototype.forEach.call(document.querySelectorAll('.sizes button'), function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.n) === n)); });
   document.getElementById('board').innerHTML = drawBoard(n, S.placed, p.g, { selSpot: S.selSpot, solved: S.done, balls: p.s.reduce(function (a, b) { return a + b; }, 0) / n });
   document.getElementById('app').classList.toggle('solved', S.done);
