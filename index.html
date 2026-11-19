@@ -130,7 +130,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down tricks. Every puzzle you solve is a real juggling pattern, and you'll see it juggled when you win.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 48</div>
+<div class="small">Version 49</div>
 </div>
 </div>
 <script>
@@ -254,7 +254,7 @@ function startJuggle(s, key) {
   stopJuggle(); JG.key = key;
   var n = s.length, balls = s.reduce(function (a, b) { return a + b; }, 0) / n, land = {}, next = 0, per = {}, b, v, id, k;
   for (b = 0; b < 1200; b++) { v = s[b % n]; id = land[b]; if (id === undefined) id = next++; (per[id] = per[id] || []).push({ b: b, v: v }); land[b + v] = id; }
-  var BEAT = 1, D = 0.8, FLOOR = 202, XS = 76, CX = 170, BR = 12.5, maxv = Math.max.apply(null, s), mT = Math.max(maxv - D, 0.6), g = 8 * 165 / (mT * mT), start = n * 2 * maxv;
+  var BEAT = 1, D = 0.9, FLOOR = 202, XS = 76, CX = 170, BR = 12.5, maxv = Math.max.apply(null, s), mT = Math.max(maxv - D, 0.6), g = 8 * 165 / (mT * mT), start = n * 2 * maxv;
   var svg = document.getElementById('juggler'), ns = 'http://www.w3.org/2000/svg', els = [];
   var HK = 1.35, HT = 0.62, HDY = 8, hshape = '<path d="' + HAND.wrist + '" fill="url(#jwf)"/>' + realHand().map(function (d) { return '<path d="' + d + '" fill="#6A6E98"/>'; }).join('');
   svg.innerHTML = '<defs><linearGradient id="jwf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6A6E98" stop-opacity="0"/><stop offset="1" stop-color="#6A6E98"/></linearGradient></defs>' +
