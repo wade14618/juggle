@@ -109,7 +109,7 @@ h1 svg{overflow:visible}
 <button class="x" id="xHelp" aria-label="Close"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 2L16 16M16 2L2 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></button>
 <h2>How to play</h2>
 <ol>
-<li>Each number <b>tosses its ball</b> that many spots clockwise. A 3 tosses its ball three spots. Tosses wrap around the ring.</li>
+<li>Each number <b>tosses its ball</b> that many spots counterclockwise. A 3 tosses its ball three spots. Tosses wrap around the ring.</li>
 <li>Tap a number, then tap an empty spot to put it there, or drag the number onto the spot. A line shows where it lands.</li>
 <li>Fill the ring so that <b>no two balls land on the same spot</b>. Then you have a juggling trick that really works.</li>
 <li>Numbers with a ring around them are already set and cannot move.</li>
@@ -126,7 +126,7 @@ h1 svg{overflow:visible}
 <p>Start with Small. Tap or drag any number onto an empty spot and watch where its arrow lands. If you get stuck, <b>Hint</b> places one number for you.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 39</div>
+<div class="small">Version 41</div>
 </div>
 </div>
 <script>
@@ -162,7 +162,7 @@ function drawBoard(n, placed, givens, o) {
   var sfx = o.id || '';
   var cx = 180, cy = 180, R = 130, r = n === 5 ? 31 : n === 7 ? 27 : 24;
   var pts = [], angs = [], i, f1 = function (x) { return x.toFixed(1); };
-  for (i = 0; i < n; i++) { var a = -Math.PI / 2 + i * 2 * Math.PI / n; angs.push(a); pts.push([cx + R * Math.cos(a), cy + R * Math.sin(a)]); }
+  for (i = 0; i < n; i++) { var a = -Math.PI / 2 - i * 2 * Math.PI / n; angs.push(a); pts.push([cx + R * Math.cos(a), cy + R * Math.sin(a)]); }
   var land = landings(n, placed);
   var full = placed.every(function (v) { return !!v; });
   var h = '<defs>';
@@ -300,11 +300,10 @@ function render() {
   document.getElementById('rack').innerHTML = rh;
   var land = landings(n, S.placed), clash = land.some(function (c) { return c > 1; }), msg = document.getElementById('msg');
   msg.className = 'msg';
-  if (clash) { msg.className = 'msg bad'; msg.textContent = 'Two balls land on the same spot.'; }
+  if (clash) { msg.className = 'msg bad'; msg.textContent = 'Dropped ball. Two balls land on the same spot.'; }
   else if (S.selTile) msg.innerHTML = '<span>Now tap an empty spot for the <b>' + S.selTile + '</b>.</span>';
   else if (S.selSpot !== null) msg.textContent = 'Now tap a number to put on that spot.';
-  else if (S.placed.every(function (v, i) { return !v || p.g[i]; })) msg.innerHTML = '<span>Drag a number from below onto an empty spot.<br>It tosses its ball that many spots clockwise.</span>';
-  else msg.innerHTML = '<span>Each number tosses its ball that many spots clockwise.<br>No two balls should land on the same spot.</span>';
+  else msg.textContent = 'Drag a number from below onto an empty spot.';
   if (S.done) {
     var sum = p.s.reduce(function (a, b) { return a + b; }, 0), balls = sum / n;
     document.getElementById('doneBig').textContent = 'Solved in ' + fmt(S.elapsed) + ' · ' + S.hints + (S.hints === 1 ? ' hint' : ' hints');
@@ -329,7 +328,7 @@ function tapTile(v, k) {
 /* Drag and drop: a second way to place, alongside tapping. */
 var DR = { on: false, pend: false, src: null, v: 0, x0: 0, y0: 0, ghost: null, target: -1, skipClick: false, pid: null };
 var LIFT = 56;
-function spotPts(n) { var a = [], i; for (i = 0; i < n; i++) { var g = -Math.PI / 2 + i * 2 * Math.PI / n; a.push([180 + 130 * Math.cos(g), 180 + 130 * Math.sin(g)]); } return a; }
+function spotPts(n) { var a = [], i; for (i = 0; i < n; i++) { var g = -Math.PI / 2 - i * 2 * Math.PI / n; a.push([180 + 130 * Math.cos(g), 180 + 130 * Math.sin(g)]); } return a; }
 function toBoard(x, y) {
   var svg = document.getElementById('board'), m = svg.getScreenCTM(); if (!m) return null;
   var pt = svg.createSVGPoint(); pt.x = x; pt.y = y; return pt.matrixTransform(m.inverse());
