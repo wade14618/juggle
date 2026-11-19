@@ -130,7 +130,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down tricks. Every puzzle you solve is a real juggling pattern, and you'll see it juggled when you win.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 44</div>
+<div class="small">Version 50</div>
 </div>
 </div>
 <script>
@@ -224,32 +224,60 @@ function drawBoard(n, placed, givens, o) {
 var WINMSG = { 2: 'Two balls. A gentle warm-up.', 3: 'A classic three-ball trick.', 4: 'Four balls in the air!', 5: 'Five balls. Circus-ready.', 6: 'Six balls! That takes a pro.', 7: 'Seven balls! World-class.' };
 var JG = { key: null, raf: 0 };
 function stopJuggle() { if (JG.raf) cancelAnimationFrame(JG.raf); JG.raf = 0; JG.key = null; }
+/* Win-animation hands: realistic palm-up hand, fingers toward the viewer, thumb outward (v45). */
+function fingerPath(bx, by, ang, L, w0, w1) {
+  var a = ang * Math.PI / 180, dx = Math.sin(a), dy = Math.cos(a), nx = dy, ny = -dx, r = w1 / 2;
+  var tx = bx + dx * (L - r), ty = by + dy * (L - r);
+  var f = function (p) { return p[0].toFixed(2) + ' ' + p[1].toFixed(2); };
+  var b1 = [bx - nx * w0 / 2 - dx * 3, by - ny * w0 / 2 - dy * 3], b2 = [bx + nx * w0 / 2 - dx * 3, by + ny * w0 / 2 - dy * 3];
+  var p1 = [bx - nx * w0 / 2, by - ny * w0 / 2], p2 = [tx - nx * r, ty - ny * r], p3 = [tx + nx * r, ty + ny * r], p4 = [bx + nx * w0 / 2, by + ny * w0 / 2];
+  return 'M' + f(b1) + 'L' + f(p1) + 'L' + f(p2) + 'A' + r.toFixed(2) + ' ' + r.toFixed(2) + ' 0 0 0 ' + f(p3) + 'L' + f(p4) + 'L' + f(b2) + 'Z';
+}
+var HAND = {
+  F: [[10.9, 6.6, 12, 17, 7.2, 5.9], [3.7, 8.0, 3, 19.5, 7.4, 6.1], [-3.6, 7.6, -5, 18, 7.0, 5.8], [-10.6, 5.8, -15, 14, 6.2, 5.1]],
+  T: {bx: 12.8, by: -7, ang: 52, L: 9, w0: 8.6, w1: 7.4}, T2: {ang: 28, L: 8.5, w1: 6.2},
+  palm: 'M-8.6 -19C-11.6 -13.5 -12.7 -6.5 -12.4 -1C-12.2 3.5 -11.3 6.4 -8.6 8.4C-7.6 9 -6.8 9.1 -6 9.1L6 9.5C10 9.7 14 8 14.8 4C15.5 -1 15 -7 12.5 -12C11 -15.5 9.6 -19 8.4 -19Z',
+  thumb: 'M8.5 -14.5C14.5 -12.5 19.5 -7.5 23.2 -1.8C25.4 1.6 24.6 5.2 21.6 5.4C19.2 5.5 17.2 2.6 14.6 0.2C13 -1.2 11.6 -0.8 10.2 0.6Z',
+  thenar: 'M7 -16C12.5 -16 16.5 -11 16.6 -5C16.6 0 13.5 3 9.5 2.5Z',
+  filler: 'M-12.45 -3C-12.6 0 -13.2 3 -13.75 5.4L-12 7.5L-9 2Z',
+  wrist: 'M-8.4 -29L8.2 -29L8.6 -17L-8.8 -17Z'
+};
+function realHand(h) {
+  h = h || HAND; var d = [];
+  h.F.forEach(function (f) { d.push(fingerPath(f[0], f[1], f[2], f[3], f[4], f[5])); });
+  d.push(h.palm); d.push(h.filler); d.push(h.thumb);
+  d.push(h.thenar);
+  return d;
+}
 function startJuggle(s, key) {
   if (JG.key === key) return;
   stopJuggle(); JG.key = key;
   var n = s.length, balls = s.reduce(function (a, b) { return a + b; }, 0) / n, land = {}, next = 0, per = {}, b, v, id, k;
   for (b = 0; b < 1200; b++) { v = s[b % n]; id = land[b]; if (id === undefined) id = next++; (per[id] = per[id] || []).push({ b: b, v: v }); land[b + v] = id; }
-  var BEAT = 1, D = 0.5, FLOOR = 202, XS = 76, CX = 170, BR = 12.5, maxv = Math.max.apply(null, s), mT = Math.max(maxv - D, 0.6), g = 8 * 165 / (mT * mT), start = n * 2 * maxv;
+  var BEAT = 0.8, D = 0.9, FLOOR = 202, XS = 76, CX = 170, BR = 12.5, maxv = Math.max.apply(null, s), mT = Math.max(maxv - D, 0.6), g = 8 * 165 / (mT * mT), start = n * 2 * maxv;
   var svg = document.getElementById('juggler'), ns = 'http://www.w3.org/2000/svg', els = [];
-  function cap(x1, y1, x2, y2, w) { return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke-width="' + w + '" stroke-linecap="round"/>'; }
-  function hand(hx, sd) {
-    var y = FLOOR + 14, fx = [-11, -3.7, 3.7, 11], len = [17, 21, 21, 17], fan = [-2, -0.7, 0.7, 2], o = '<g fill="#6A6E98" stroke="#6A6E98">', f;
-    for (f = 0; f < 4; f++) o += cap(hx - sd * 4 + sd * fx[f], y + 2, hx - sd * 4 + sd * (fx[f] + fan[f]), y + 2 + len[f], 7);
-    o += cap(hx + sd * 13, y - 1, hx + sd * 22.7, y + 4.6, 7.5);
-    return o + '<ellipse cx="' + (hx - sd * 2) + '" cy="' + y + '" rx="19" ry="9" stroke="none"/></g>';
+  var HK = 1.35, HT = 0.62, HDY = 8, hshape = '<path d="' + HAND.wrist + '" fill="url(#jwf)"/>' + realHand().map(function (d) { return '<path d="' + d + '" fill="#6A6E98"/>'; }).join('');
+  svg.innerHTML = '<defs><linearGradient id="jwf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6A6E98" stop-opacity="0"/><stop offset="1" stop-color="#6A6E98"/></linearGradient></defs>' +
+    '<g id="jh0"><g>' + hshape + '</g></g><g id="jh1"><g transform="scale(-1 1)">' + hshape + '</g></g>';
+  var hands = [svg.querySelector('#jh0'), svg.querySelector('#jh1')];
+  // Each hand travels an ellipse once every two beats: catch on the outside, scoop down and in while holding, throw on the inside, rise and swing back out.
+  var HRX = XS * 0.35, HRY = 14;
+  function handPos(hs, t) {
+    var c = (((t - hs + D) % 2) + 2) % 2 / 2, th = 2 * Math.PI * (c + 0.07 * Math.sin(2 * Math.PI * c)), sd = hs === 0 ? 1 : -1;
+    return [CX + sd * (XS * 0.7 + HRX * Math.cos(th)), FLOOR + HRY * Math.sin(th)];
   }
-  svg.innerHTML = hand(CX + XS * 0.7, 1) + hand(CX - XS * 0.7, -1);
   for (k = 0; k < balls; k++) { var c = document.createElementNS(ns, 'g'); c.innerHTML = '<circle r="' + BR + '"/><text text-anchor="middle" y="5" font-size="14" font-weight="600" fill="#23253D"></text>'; svg.appendChild(c); els.push(c); }
   function sideX(h, inner) { return CX + (h === 0 ? 1 : -1) * XS * (inner ? 0.35 : 1.05); }
   function pos(list, t) {
     for (var i = list.length - 1; i >= 0; i--) { var th = list[i]; if (th.b <= t) {
-      var v = th.v, h = th.b % 2, lh = (th.b + v) % 2, ft = v - D, u = t - th.b;
-      if (u < ft) { var x0 = sideX(h, true), x1 = sideX(lh, false), vy = g * ft / 2; return [x0 + (x1 - x0) * (u / ft), FLOOR - (vy * u - 0.5 * g * u * u), v]; }
-      var w = (u - ft) / D, xa = sideX(lh, false), xb = sideX(lh, true), nx = list[i + 1]; return [xa + (xb - xa) * w, FLOOR + 10 * Math.sin(Math.PI * w), nx ? nx.v : v];
+      var v = th.v, h = th.b % 2, lh = (th.b + v) % 2, ft = v - D, u = t - th.b, nx = list[i + 1];
+      if (u < ft) { var a = handPos(h, th.b), z = handPos(lh, th.b + ft), vy = g * ft / 2, k = u / ft; return [a[0] + (z[0] - a[0]) * k, a[1] + (z[1] - a[1]) * k - (vy * u - 0.5 * g * u * u), v]; }
+      var hp = handPos(lh, t); return [hp[0], hp[1], nx ? nx.v : v];
     } }
     return null;
   }
   function draw(t) {
+    for (var hs = 0; hs < 2; hs++) { var hp = handPos(hs, t); hands[hs].setAttribute('transform', 'translate(' + hp[0].toFixed(1) + ' ' + (hp[1] + HDY).toFixed(1) + ') scale(' + HK + ' ' + (HK * HT).toFixed(3) + ')'); }
     for (var i = 0; i < balls; i++) { var q = pos(per[i], t), e = els[i]; if (!q) { e.setAttribute('visibility', 'hidden'); continue; }
       e.setAttribute('visibility', 'visible'); e.setAttribute('transform', 'translate(' + q[0].toFixed(1) + ' ' + q[1].toFixed(1) + ')'); e.firstChild.setAttribute('fill', COL[q[2]]); e.lastChild.textContent = q[2]; }
   }
