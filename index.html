@@ -130,7 +130,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down tricks. Every puzzle you solve is a real juggling pattern, and you'll see it juggled when you win.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 54</div>
+<div class="small">Version 55</div>
 </div>
 </div>
 <script>
@@ -215,7 +215,7 @@ function drawBoard(n, placed, givens, o) {
       h += '<circle cx="' + X + '" cy="' + Y + '" r="' + r + '" fill="' + COL[val] + '"/>';
       h += '<text x="' + X + '" y="' + f1(pts[i][1] + r * 0.36) + '" text-anchor="middle" font-size="' + (r * 1.05).toFixed(0) + '" font-weight="600" fill="#23253D">' + val + '</text>';
     } else {
-      h += '<circle cx="' + X + '" cy="' + Y + '" r="' + r + '" fill="' + (sel ? '#454A7A' : '#353959') + '" stroke="' + (sel ? '#F4F1E8' : '#C3C5E3') + '" stroke-width="' + (sel ? 4 : 2) + '"' + (sel ? '' : ' stroke-dasharray="5 6"') + '/>';
+      h += '<circle cx="' + X + '" cy="' + Y + '" r="' + r + '" fill="' + (sel ? '#454A7A' : '#353959') + '" stroke="' + (sel ? '#F4F1E8' : '#DCDDF0') + '" stroke-width="' + (sel ? 4 : 2) + '"' + (sel ? '' : ' stroke-dasharray="5 6"') + '/>';
     }
     h += '</g>';
   }
