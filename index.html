@@ -126,7 +126,7 @@ h1 svg{overflow:visible}
 <p>Start with Small. Tap or drag any number onto an empty spot and watch where its arrow lands. If you get stuck, <b>Hint</b> places one number for you.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 40</div>
+<div class="small">Version 41</div>
 </div>
 </div>
 <script>
@@ -300,11 +300,10 @@ function render() {
   document.getElementById('rack').innerHTML = rh;
   var land = landings(n, S.placed), clash = land.some(function (c) { return c > 1; }), msg = document.getElementById('msg');
   msg.className = 'msg';
-  if (clash) { msg.className = 'msg bad'; msg.textContent = 'Two balls land on the same spot.'; }
+  if (clash) { msg.className = 'msg bad'; msg.textContent = 'Dropped ball. Two balls land on the same spot.'; }
   else if (S.selTile) msg.innerHTML = '<span>Now tap an empty spot for the <b>' + S.selTile + '</b>.</span>';
   else if (S.selSpot !== null) msg.textContent = 'Now tap a number to put on that spot.';
-  else if (S.placed.every(function (v, i) { return !v || p.g[i]; })) msg.innerHTML = '<span>Drag a number from below onto an empty spot.<br>It tosses its ball that many spots counterclockwise.</span>';
-  else msg.innerHTML = '<span>A number tosses its ball that many spots counterclockwise.<br>No two balls should land on the same spot.</span>';
+  else msg.textContent = 'Drag a number from below onto an empty spot.';
   if (S.done) {
     var sum = p.s.reduce(function (a, b) { return a + b; }, 0), balls = sum / n;
     document.getElementById('doneBig').textContent = 'Solved in ' + fmt(S.elapsed) + ' · ' + S.hints + (S.hints === 1 ? ' hint' : ' hints');
