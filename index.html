@@ -61,8 +61,8 @@ h1 svg{overflow:visible}
 .win .w1{font-family:var(--display);font-size:30px;font-weight:600;color:var(--sun);margin:18px 0 0}
 .win .w2{font-family:var(--display);font-size:19px;font-weight:500;margin:4px 0 2px}
 .win .w3{font-size:15px;color:var(--mute);margin:0}
-#juggler{width:100%;display:block;margin:4px 0 26px}
-.tip{max-width:300px;margin:0 auto 24px;background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:10px 14px;text-align:center}
+#juggler{width:100%;display:block;margin:4px 0 38px}
+.tip{max-width:300px;margin:0 auto 12px;background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:10px 14px;text-align:center}
 .tip .tl{font-size:12px;color:var(--sun);margin:0 0 3px;letter-spacing:.3px}
 .tip .tt{font-size:14px;line-height:1.45;margin:0}
 #winSeq{display:none}
@@ -135,7 +135,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down tricks. Every puzzle you solve is a real juggling pattern, and you'll see it juggled when you win.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 59</div>
+<div class="small">Version 63</div>
 </div>
 </div>
 <script>
@@ -284,8 +284,9 @@ function startJuggle(s, key) {
   function sideX(h, inner) { return CX + (h === 0 ? 1 : -1) * XS * (inner ? 0.35 : 1.05); }
   function pos(list, t) {
     for (var i = list.length - 1; i >= 0; i--) { var th = list[i]; if (th.b <= t) {
-      var v = th.v, h = th.b % 2, lh = (th.b + v) % 2, ft = v - D, u = t - th.b, nx = list[i + 1];
-      if (u < ft) { var a = handPos(h, th.b), z = handPos(lh, th.b + ft), vy = g * ft / 2, k = u / ft; return [a[0] + (z[0] - a[0]) * k, a[1] + (z[1] - a[1]) * k - (vy * u - 0.5 * g * u * u), v]; }
+      var v = th.v, h = th.b % 2, lh = (th.b + v) % 2, ft = v === 1 ? 0.55 : v - D, u = t - th.b, nx = list[i + 1];
+      if (v === 2 && u < ft) { var hh = handPos(h, t); return [hh[0], hh[1], v]; }
+      if (u < ft) { var a = handPos(h, th.b), z = handPos(lh, th.b + ft), k = u / ft; return [a[0] + (z[0] - a[0]) * k, a[1] + (z[1] - a[1]) * k - 4 * 165 * Math.pow(Math.min(ft / mT, 1), 0.8) * k * (1 - k), v]; }
       var hp = handPos(lh, t); return [hp[0], hp[1], nx ? nx.v : v];
     } }
     return null;
