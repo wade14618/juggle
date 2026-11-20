@@ -135,7 +135,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down tricks. Every puzzle you solve is a real juggling pattern, and you'll see it juggled when you win.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 61</div>
+<div class="small">Version 62</div>
 </div>
 </div>
 <script>
@@ -284,7 +284,7 @@ function startJuggle(s, key) {
   function sideX(h, inner) { return CX + (h === 0 ? 1 : -1) * XS * (inner ? 0.35 : 1.05); }
   function pos(list, t) {
     for (var i = list.length - 1; i >= 0; i--) { var th = list[i]; if (th.b <= t) {
-      var v = th.v, h = th.b % 2, lh = (th.b + v) % 2, ft = v - D, u = t - th.b, nx = list[i + 1];
+      var v = th.v, h = th.b % 2, lh = (th.b + v) % 2, ft = v === 1 ? 0.55 : v - D, u = t - th.b, nx = list[i + 1];
       if (u < ft) { var a = handPos(h, th.b), z = handPos(lh, th.b + ft), k = u / ft; return [a[0] + (z[0] - a[0]) * k, a[1] + (z[1] - a[1]) * k - 4 * 165 * Math.pow(Math.min(ft / mT, 1), 0.8) * k * (1 - k), v]; }
       var hp = handPos(lh, t); return [hp[0], hp[1], nx ? nx.v : v];
     } }
