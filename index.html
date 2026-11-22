@@ -71,7 +71,7 @@ h1 svg{overflow:visible}
 .solved .play{display:none}
 #help{position:fixed;inset:0;background:rgba(20,22,40,.55);display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:16px}
 #help.open{display:flex}
-#help .sheet{position:relative;background:var(--panel);border-radius:20px;max-width:420px;width:100%;padding:18px 18px 22px}
+#help .sheet{position:relative;background:var(--panel);border-radius:20px;max-width:420px;width:100%;padding:18px 18px 22px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 #help h2{font-family:var(--display);margin:0 0 16px;font-size:24px;padding-right:48px}
 #help .x{position:absolute;top:10px;right:10px;width:44px;height:44px;border:1.5px solid var(--edge);border-radius:22px;background:#474B78;color:var(--ink);padding:0;display:flex;align-items:center;justify-content:center}
 #help .x svg{width:18px;height:18px;margin:0;background:none;border-radius:0}
@@ -135,7 +135,7 @@ h1 svg{overflow:visible}
 <p>This is how jugglers write down tricks. Every puzzle you solve is a real juggling pattern, and you'll see it juggled when you win.</p>
 <button class="close" id="closeHelp">Play</button>
 <button class="erase" id="erase">Erase my progress</button>
-<div class="small">Version 63</div>
+<div class="small">Version 64</div>
 </div>
 </div>
 <script>
@@ -513,11 +513,20 @@ Array.prototype.forEach.call(document.querySelectorAll('.sizes button'), functio
 });
 var _load = load;
 load = function (n, idx) { _load(n, idx); store.set('at' + n, { idx: idx }); };
+function fitHelp() {
+  var sh = document.querySelector('#help .sheet'), b = document.querySelector(S.done ? '.done .row' : '.ctl');
+  sh.style.maxHeight = ''; sh.scrollTop = 0;
+  if (!b || !document.getElementById('help').classList.contains('open')) return;
+  var h = b.getBoundingClientRect().bottom - sh.getBoundingClientRect().top;
+  if (h > 240) sh.style.maxHeight = Math.round(h) + 'px';
+}
+window.addEventListener('resize', function () { if (document.getElementById('help').classList.contains('open')) fitHelp(); });
 function openHelp() {
   disarmErase();
   document.getElementById('helpPic').innerHTML = '<svg viewBox="0 0 360 360" role="img" aria-label="A solved ring of five spots holding 2, 4, 4, 1, 4">' + drawBoard(5, [2, 4, 4, 1, 4], [0, 0, 0, 1, 0], { id: 'h' }) + '</svg>';
   document.getElementById('help').classList.add('open');
   document.getElementById('help').scrollTop = 0;
+  fitHelp();
   store.set('seenHelp', 1);
 }
 document.getElementById('helpBtn').addEventListener('click', openHelp);
